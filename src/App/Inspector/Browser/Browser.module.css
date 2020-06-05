@@ -1,0 +1,10 @@
+.tabRoot {
+    background-color: #fafafa;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+}
+
+.tabButton {
+    background-color: #f9f9f9;
+    border-right: 1px solid #ddd;
+}

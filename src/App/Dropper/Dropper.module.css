@@ -1,0 +1,58 @@
+.dropzone {
+    display: flex;
+    flex-grow: 1;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.placeholder {
+    width: 100%;
+    max-width: 500px;
+    border-radius: 0.5em;
+    background: #EEE;
+    padding: 2em;
+    text-align: center;
+}
+
+.uploadBtn {
+    margin-top: 2em;
+}
+
+.uploadBtn input {
+    width: .1px;
+    height: .1px;
+    opacity: 0;
+    overflow: hidden;
+    position: absolute;
+    z-index: -1;
+}
+
+.uploadBtn label {
+    color: #353535;
+    border: 0;
+    border-radius: 3px;
+    transition: ease 0.2s background;
+    font-size: 1rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    display: inline-block;
+    overflow: hidden;
+    padding: 0.625rem 1.25rem;
+}
+
+.uploadBtn label:hover {
+    background: #DDD;
+}
+
+.uploadBtn svg {
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+    fill: currentColor;
+    margin-top: -0.25em;
+    margin-right: 0.25em;
+}
+

@@ -1,0 +1,18 @@
+.container {
+    display: grid;
+    grid-template-columns: minmax(300px, 800px) 1fr;
+    /* grid-template-rows: 2fr 1fr 2fr; */
+    gap: 1px 1px;
+    grid-template-areas: "nodeTree info";
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+.nodeTree { grid-area: nodeTree; }
+
+.info { grid-area: info; }
+
+.buffer { grid-area: buffer; }
+
+.viewer { grid-area: viewer; }
