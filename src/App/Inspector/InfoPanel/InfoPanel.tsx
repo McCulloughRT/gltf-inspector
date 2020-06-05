@@ -31,10 +31,25 @@ function getPanel(gltf: glTF, item?: glNode | glMesh | glPrimitive) {
 }
 
 const PrimitiveCard: React.FC<{prim: glPrimitive, gltf: glTF}> = ({ prim, gltf }) => {
-    
+    const attributes = Object.keys(prim.attributes).map((a,i) => {
+        const attribIdx = prim.attributes[a]
+        const attrib = gltf.accessors[attribIdx]
+        return (
+            <div>
+                <div>
+                    <div>{ a }</div>
+                    <div>{ attribIdx }</div>
+                    <div>{ attrib.count }</div>
+                    <div>{ attrib.type }</div>
+                </div>
+            </div>
+        )
+    })
     return (
-        <Paper className={ styles.primitiveCard }>
-            <div></div>
+        <Paper elevation={6} className={ styles.primitiveCard }>
+            <div>
+                { attributes }
+            </div>
         </Paper>
     )
 }
@@ -66,11 +81,11 @@ const MeshPanel: React.FC<{mesh: glMesh, gltf: glTF}> = ({ mesh, gltf }) => {
 
             <div>
                 <div>Primitives</div>
-                <div>
+                <div style={{ padding: '10px' }}>
                     {
                         mesh.primitives.map((p,i) => {
                             return (
-                                <div />
+                                <PrimitiveCard key={i} prim={p} gltf={gltf} />
                             )
                         })
                     }
