@@ -13,6 +13,10 @@ interface IDropperState {
   isLoaded: boolean
 }
 
+/**
+ * Adapted from:
+ * https://github.com/donmccurdy/three-gltf-viewer
+ */
 export default class Dropper extends React.Component<IDropperProps, IDropperState> {
   public state: IDropperState = {
     isLoaded: false

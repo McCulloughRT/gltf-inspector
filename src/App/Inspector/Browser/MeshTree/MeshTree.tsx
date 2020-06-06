@@ -1,68 +1,63 @@
 import React from 'react'
 import styles from './MeshTree.module.css'
 import { glMesh, glPrimitive } from '../../../../types/gltf'
-import { AutoSizer, List } from 'react-virtualized'
+import { AutoSizer, List, Table, Column } from 'react-virtualized'
 
 interface IMeshTreeProps {
     meshes: glMesh[]
+    scrollToIndex?: number
     onMeshSelect: (mesh: glMesh) => void
 }
 
-const MeshTree: React.FC<IMeshTreeProps> = (props) => {
+const MeshTree: React.FC<IMeshTreeProps> = ({ meshes, onMeshSelect, scrollToIndex }) => {
+    const [selectedIdx, setSelectedIdx] = React.useState<number | undefined>()
 
-    const rowRendererFn = (list: glMesh[], padding: number) => (rowRenderingProps: {
-        key: string,
-        index: number,
-        isScrolling: boolean,
-        isVisible: boolean,
-        style: React.CSSProperties
-    }) => {
-        const item = list[rowRenderingProps.index]
-        const leftPad = 0
-        const customStyle: React.CSSProperties = {...rowRenderingProps.style, paddingLeft: `${leftPad}px`}
-    
-        return (
-            <div key={rowRenderingProps.key} onClick={() => props.onMeshSelect(item) } className={ styles.nodeRow } style={customStyle}>
-                <div className={ styles.nodeRowText }>{ `${item.selfIndex}:   ${item.name || 'Unnamed Mesh'}` }</div>
-            </div>
-        )
+    const handleClick = ({event, index, rowData}: {event: React.MouseEvent, index: number, rowData: any}) => {
+        setSelectedIdx(index)
+        onMeshSelect(meshes[index])
     }
 
-    // const list = organizeMeshes(props.meshes)
-    const rowRenderer = rowRendererFn(props.meshes, 25)
+    React.useEffect(() => {
+        if (scrollToIndex != null) {
+            setSelectedIdx(scrollToIndex)
+            onMeshSelect(meshes[scrollToIndex])
+        }
+    }, [scrollToIndex])
 
     return (
         <div style={{ height: '100%' }}>
         <AutoSizer>
             {({height, width}) => (
-                <List 
+                <Table
                     width={ width }
                     height={ height }
-                    rowCount={ props.meshes.length }
+                    headerHeight={ 25 }
+                    noRowsRenderer={() => <div className={styles.noRows}>No rows</div>}
+                    rowClassName={ ({index}) => index < 0 ? styles.meshHeader : styles.meshRow }
+                    rowStyle={ ({index}) => {
+                        const style: React.CSSProperties = {}
+                        if (index === selectedIdx) style['backgroundColor'] = '#e1e1e9'
+                        return style
+                    }}
+                    scrollToIndex={ scrollToIndex }
                     rowHeight={ 25 }
-                    rowRenderer={ rowRenderer }
-                />
+                    rowCount={ meshes.length }
+                    rowGetter={ ({index}) => meshes[index] }
+                    onRowClick={ handleClick }
+                >
+                    <Column label='Idx' dataKey='selfIndex' width={width * .1} />
+                    <Column label='Name' dataKey='name' width={width * .375} cellDataGetter={
+                        ({columnData, dataKey, rowData}) => {
+                            return rowData[dataKey] || 'Unnamed Mesh'
+                        }
+                    } />
+                    <Column label='Refs' dataKey='referenceCount' width={width * .375} />
+                    <Column label='Size' dataKey='size' width={width * .15} />
+                </Table>
             )}
         </AutoSizer>
     </div>
     )
 }
-
-// const organizeMeshes = (meshes: glMesh[]) => {
-//     const meshList: (glMesh | glPrimitive)[] = []
-//     for (let i = 0; i < meshes.length; i++) {
-//         const mesh = meshes[i];
-//         mesh.type = 'mesh'
-//         mesh.selfIndex = i
-//         meshList.push(mesh)
-//         for (let j = 0; j < mesh.primitives.length; j++) {
-//             const primitive = mesh.primitives[j];
-//             primitive.type = 'primitive'
-//             primitive.selfIndex = j
-//             meshList.push(primitive)
-//         }
-//     }
-//     return meshList
-// }
 
 export default MeshTree

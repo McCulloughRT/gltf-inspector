@@ -52,7 +52,7 @@ interface IGLTFExtention {
 }
 
 export interface glTF {
-    asset: { version: number }
+    asset: { version: number[] }
     scenes: glScene[],
     nodes: glNode[],
     meshes: glMesh[],

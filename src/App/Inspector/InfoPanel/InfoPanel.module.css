@@ -2,10 +2,16 @@
     /* max-height: 400px; */
     /* max-width: 600px; */
     height: 100%;
-    width: 100%;
     overflow: auto;
+    padding: 20px;
 }
 
+/* Node Styles */
+.nodeCard {
+    margin-bottom: 10px;
+    padding: 10px;
+    /* font-size: 0.8em; */
+}
 .nodeInfoContainer {
     display: inline-grid;
     grid-template-columns: 1fr 1fr;
@@ -18,23 +24,92 @@
     /* border-top: 1px solid #aaa;
     border-left: 1px solid #aaa; */
 }
-
 .nodeInfoBox {
     /* border-right: 1px solid #aaa;
     border-bottom: 1px solid #aaa; */
     padding: 20px;
 }
-
 .nodeInfoTitle {
     font-weight: 700;
     font-size: 1em;
     margin-bottom: 10px;
 }
-
 .nodeInfoContent {
 
 }
-
 .nodeExtrasContent {
     
 }
+
+/* Mesh Styles */
+.panelTitle {
+    font-size: 1.5em;
+    font-weight: 400;
+    margin-bottom: 20px;
+}
+.meshInfoSection {
+    margin-bottom: 20px;
+}
+.meshViewerSection {
+    /* width: 400px; */
+    height: 400px;
+    margin-bottom: 20px;
+}
+.infoKey {
+    display: inline-block;
+}
+.infoValue {
+    display: inline-block;
+    margin-left: 15px;
+    font-weight: 700;
+}
+
+/* Primitive Styles */
+.primitiveCard {
+    margin-bottom: 10px;
+    padding: 10px;
+    font-size: 0.8em;
+    max-width: 500px;
+}
+.primitiveTitle {
+    font-size: 1.3em;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.primitiveSection {
+    margin-bottom: 10px;
+}
+.primitiveSubtitle {
+    margin-bottom: 5px;
+    font-size: 1.2em;
+}
+.primitiveSubContainer {
+    margin-left: 15px;
+}
+.attributeTable {
+    width: 100%;
+}
+.attributeTable th {
+    text-align: left;
+}
+
+/* .indicesSection {
+    margin-bottom: 10px;
+}
+.indicesTitle {
+
+}
+.indicesContainer {
+    margin-left: 15px;
+}
+
+.materialSection {
+    margin-bottom: 10px;
+}
+.materialTitle {
+
+}
+.materialContainer {
+    margin-left: 15px;
+} */

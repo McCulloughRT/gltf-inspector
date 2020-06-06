@@ -13,6 +13,7 @@ interface IInspectorProps {
 
 interface IInspectorState {
     selectedItem?: glNode | glMesh
+    meshScrollToIndex?: number
 }
 
 export default class Inspector extends React.Component<IInspectorProps,IInspectorState> {
@@ -32,14 +33,19 @@ export default class Inspector extends React.Component<IInspectorProps,IInspecto
                 </div>
                 <div className={ styles.info }>
                     <InfoPanel 
-                        gltf={ this.props.gltfPackage.gltf } 
+                        gltfPackage={ this.props.gltfPackage } 
                         item={ this.state.selectedItem } 
+                        // onMeshScrollTo={this.onMeshScrollTo}
                     />
                 </div>
                 {/* <div className={ styles.buffer }></div>
                 <div className={ styles.viewer }></div> */}
             </div>
         )
+    }
+
+    private onMeshScrollTo = (index: number) => {
+        this.setState({ meshScrollToIndex: index })
     }
 
     private onItemSelect = (item: glNode | glMesh) => {

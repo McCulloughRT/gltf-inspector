@@ -1,22 +1,50 @@
-.nodeRow {
+.meshRow {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     width: calc(100% - 15px) !important;
     border-bottom: 1px solid #e4e4e4;
     cursor: pointer;
-}
-
-.nodeRow:hover {
-    background-color: #e4e4e4;
-}
-
-.nodeRow:active {
-    background-color: #ccc;
-}
-
-.nodeRowText {
     font-weight: 300;
     font-size: 0.8em;
     padding-top: 5px;
+}
+
+.meshRow:hover {
+    background-color: #e4e4e4;
+}
+
+.meshRow:active {
+    background-color: #ccc;
+}
+
+.meshRow:focus {
+    outline: none;
+}
+
+.meshRowText {
+    font-weight: 300;
+    font-size: 0.8em;
+    padding-top: 5px;
+}
+
+.meshHeader {
+    text-transform: none;
+    font-size: 0.9em;
+    border-bottom: 1px solid black;
+    padding-right: 0px !important;
+    /* text-align: center; */
+}
+
+.noRows {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1em;
+    color: #bdbdbd;
 }

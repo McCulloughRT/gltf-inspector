@@ -16,6 +16,7 @@
     "@types/react-router-dom": "^5.1.5",
     "@types/react-syntax-highlighter": "^11.0.4",
     "@types/react-virtualized": "^9.21.10",
+    "@types/stats.js": "^0.17.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-router-dom": "^5.2.0",
@@ -23,6 +24,8 @@
     "react-syntax-highlighter": "^12.2.1",
     "react-virtualized": "^9.21.2",
     "simple-dropzone": "^0.7.1",
+    "stats.js": "^0.17.0",
+    "three": "^0.117.1",
     "typescript": "^3.7.5"
   },
   "scripts": {
