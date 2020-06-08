@@ -12,10 +12,17 @@ import Viewer from '../../../utils/ThreeViewer/Viewer'
 interface IInfoPanelProps {
     item?: glNode | glMesh | glPrimitive
     gltfPackage: IGLTFPackage
+    onMeshScrollTo: (index: number) => void
 }
 
 const InfoPanel: React.FC<IInfoPanelProps> = (props) => {
-    const panel = getPanel(props.gltfPackage.gltf, props.gltfPackage, props.item)
+    const panel = getPanel(
+        props.gltfPackage.gltf, 
+        props.gltfPackage, 
+        props.onMeshScrollTo,
+        props.item
+    )
+
     return (
         <div className={ styles.container }>
             { panel }
@@ -23,14 +30,225 @@ const InfoPanel: React.FC<IInfoPanelProps> = (props) => {
     )
 }
 
-function getPanel(gltf: glTF, pkg: IGLTFPackage, item?: glNode | glMesh | glPrimitive) {
+function getPanel(
+    gltf: glTF, 
+    pkg: IGLTFPackage, 
+    onMeshScrollTo: (item: number) => void,
+    item?: glNode | glMesh | glPrimitive,
+) {
     if (item == null) return <div />
     switch(item.assetType) {
-        case 'node': return <NodePanel node={item} gltf={gltf} pkg={pkg} />
-        case 'mesh': return <MeshPanel mesh={item} gltf={gltf} pkg={pkg} />
+        case 'node': return <NodePanel onMeshScrollTo={ onMeshScrollTo } node={item} gltf={gltf} pkg={pkg} />
+        case 'mesh': return <MeshPanel onMeshScrollTo={ onMeshScrollTo } mesh={item} gltf={gltf} pkg={pkg} />
         // case 'primitive': return <PrimitivePanel prim={item} gltf={gltf} />
         default: return <div />
     }
+}
+
+interface IMeshPanelProps {
+    mesh: glMesh
+    gltf: glTF
+    pkg: IGLTFPackage
+    onMeshScrollTo: (item: number) => void
+}
+const MeshPanel: React.FC<IMeshPanelProps> = ({ mesh, gltf, pkg, onMeshScrollTo }) => {
+    const [viewer, setViewer] = React.useState<ThreeViewer>(new ThreeViewer())
+    React.useEffect(() => {
+        const gltfURL = makeGltfURLFromMesh(mesh, pkg) as string
+        if (viewer.isInitialized) {
+            viewer.glTFLoadLocal(gltfURL, pkg.rootPath || '', pkg.fileMap)
+        } else {
+            viewer.on('init', () => {
+                viewer.glTFLoadLocal(gltfURL, pkg.rootPath || '', pkg.fileMap)
+            })
+        }
+    },[mesh])
+
+    return (
+        <div>
+            <div className={ styles.panelTitle }>Mesh Info</div>
+            <div className={ styles.meshInfoSection }>
+                <div>
+                    <div className={ styles.infoKey }>Total Size:</div>
+                    <div className={ styles.infoValue }>{ mesh.size } bytes</div>
+                </div>
+                <div>
+                    <div className={ styles.infoKey }>References:</div>
+                    <div className={ styles.infoValue }>{mesh.referenceCount}</div>
+                </div>
+            </div>
+            <div className={ styles.meshViewerSection }>
+                <Viewer viewer={viewer} />
+            </div>
+            <div>
+                <div>Primitives</div>
+                <div style={{ padding: '10px' }}>
+                    {
+                        mesh.primitives.map((p,i) => {
+                            return (
+                                <PrimitiveCard key={i} idx={i} prim={p} gltf={gltf} />
+                            )
+                        })
+                    }
+                </div>
+            </div>
+        </div>
+    )
+}
+
+interface INodePanelProps {
+    node: glNode 
+    gltf: glTF
+    pkg: IGLTFPackage
+    onMeshScrollTo: (item: number) => void
+}
+const NodePanel: React.FC<INodePanelProps> = ({ node, gltf, pkg, onMeshScrollTo }) => {
+    const [extrasOpen, setExtrasOpen] = React.useState(false)
+
+    const [viewer, setViewer] = React.useState<ThreeViewer>(new ThreeViewer)
+    React.useEffect(() => {
+        if (node.mesh == null) return
+        const gltfURL = makeGltfURLFromNode(node, pkg)
+        if (viewer.isInitialized) {
+            viewer.glTFLoadLocal(gltfURL, pkg.rootPath || '', pkg.fileMap)
+        } else {
+            viewer.on('init', () => {
+                viewer.glTFLoadLocal(gltfURL, pkg.rootPath || '', pkg.fileMap)
+            })
+        }
+    },[node])
+
+    const meshClick = (meshIdx?: number) => {
+        if (meshIdx == null) return
+        onMeshScrollTo(meshIdx)
+    }
+
+    return (
+        <>
+            <Dialog open={extrasOpen} onClose={() => setExtrasOpen(false)}>
+                <DialogTitle>Extras</DialogTitle>
+                <DialogContent>
+                    <SyntaxHighlighter 
+                        language='javascript' 
+                        style={colorBrewer}
+                        customStyle={{ fontSize: '0.6em' }}
+                    >
+                        { JSON.stringify(node.extras, null, 3) }
+                    </SyntaxHighlighter>
+                </DialogContent>
+            </Dialog>
+            <div>Node Info</div>
+            <div className={ styles.meshViewerSection }>
+                <Viewer viewer={viewer} />
+            </div>
+            <Paper elevation={6} className={ styles.nodeCard }>
+                <div className={ styles.nodeInfoContainer }>
+                    <div className={ styles.nodeInfoBox }>
+                        <div className={ styles.nodeInfoTitle }>Name:</div>
+                        <div className={ styles.nodeInfoContent }>
+                            {node.name}
+                        </div>
+                    </div>
+                    <div className={ styles.nodeInfoBox }>
+                        <div className={ styles.nodeInfoTitle }>Mesh:</div>
+                        <div className={ styles.nodeInfoContent } onClick={() => meshClick(node.mesh)}>
+                            { <span style={{ cursor:'pointer', color:'blue', textDecoration:'underline' }}>{node.mesh}</span> || 'none' }
+                        </div>
+                    </div>
+                    <div className={ styles.nodeInfoBox }>
+                        {
+                            formatMatrix(node.matrix)
+                        }
+                    </div>
+                    <div className={ styles.nodeInfoBox }>
+                        <div className={ styles.nodeInfoTitle }>Children:</div>
+                        <div className={ styles.nodeInfoContent }>
+                            {node.children ? JSON.stringify(node.children) : 'none'}
+                        </div>
+                    </div>
+                    <div className={ styles.nodeInfoBox }>
+                        <div className={ styles.nodeInfoTitle }>Extras:</div>
+                        <div className={ styles.nodeInfoContent }>
+                            {
+                                node.extras ? (
+                                    <span 
+                                        onClick={() => setExtrasOpen(true)} 
+                                        style={{ 
+                                            color: 'blue', 
+                                            textDecoration: 'underline',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        View
+                                    </span>
+                                ) : 'none'
+                            }
+                        </div>
+                    </div>
+                </div>
+            </Paper>
+        </>
+    )
+}
+
+const PrimitiveCard: React.FC<{prim: glPrimitive, gltf: glTF, idx: number}> = ({ prim, gltf, idx }) => {
+    const attributes = Object.keys(prim.attributes).map((a,i) => {
+        const attribIdx = prim.attributes[a]
+        const attrib = gltf.accessors[attribIdx]
+        return (
+            <tr>
+                <td>{ a }</td>
+                <td>{ attribIdx }</td>
+                <td>{ attrib.count }</td>
+                <td>{ attrib.type }</td>
+            </tr>
+        )
+    })
+    const indicesAccessor = gltf.accessors[prim.indices]
+    attributes.push((
+        <tr>
+            <td>INDICES</td>
+            <td>{ indicesAccessor.selfIndex }</td>
+            <td>{ indicesAccessor.count }</td>
+            <td>{ indicesAccessor.type }</td>
+        </tr>
+    ))
+
+    let material: glMaterial | undefined
+    if (prim.material) material = gltf.materials[prim.material]
+
+    return (
+        <Paper elevation={6} className={ styles.primitiveCard }>
+            <div className={ styles.primitiveSection }>
+                <div className={ styles.primitiveSubtitle }>Accessors</div>
+                <div className={ styles.primitiveSubContainer }>
+                <table className={ styles.attributeTable }>
+                    <thead>
+                            <tr>
+                                <th>Attribute</th>
+                                <th>Index</th>
+                                <th>Count</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            { attributes }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {
+                material != null ? (
+                    <div className={ styles.primitiveSection }>
+                        <div className={ styles.primitiveSubtitle }>Material</div>
+                        <div className={ styles.primitiveSubContainer }>
+                            <div>{ material.name || `Unnamed Material #${material.selfIndex}` }</div>
+                        </div>
+                    </div>
+                ) : null
+            }
+        </Paper>
+    )
 }
 
 function makeGltfURLFromNode(originalNode: glNode, pkg: IGLTFPackage): string {
@@ -142,195 +360,6 @@ function makeGltfURLFromMesh(originalMesh: glMesh, pkg: IGLTFPackage, returnObje
     const blob = new Blob([JSON.stringify(gltf)], {type : 'application/json'});
     const gltfURL = URL.createObjectURL(blob)
     return gltfURL
-}
-
-const MeshPanel: React.FC<{mesh: glMesh, gltf: glTF, pkg: IGLTFPackage}> = ({ mesh, gltf, pkg }) => {
-    const [viewer, setViewer] = React.useState<ThreeViewer>(new ThreeViewer)
-    React.useEffect(() => {
-        const gltfURL = makeGltfURLFromMesh(mesh, pkg) as string
-        if (viewer.isInitialized) {
-            viewer.glTFLoadLocal(gltfURL, pkg.rootPath || '', pkg.fileMap)
-        } else {
-            viewer.on('init', () => {
-                viewer.glTFLoadLocal(gltfURL, pkg.rootPath || '', pkg.fileMap)
-            })
-        }
-    },[mesh])
-
-    return (
-        <div>
-            <div className={ styles.panelTitle }>Mesh Info</div>
-            <div className={ styles.meshInfoSection }>
-                <div>
-                    <div className={ styles.infoKey }>Total Size:</div>
-                    <div className={ styles.infoValue }>{ mesh.size } bytes</div>
-                </div>
-                <div>
-                    <div className={ styles.infoKey }>References:</div>
-                    <div className={ styles.infoValue }>{mesh.referenceCount}</div>
-                </div>
-            </div>
-            <div className={ styles.meshViewerSection }>
-                <Viewer viewer={viewer} />
-            </div>
-            <div>
-                <div>Primitives</div>
-                <div style={{ padding: '10px' }}>
-                    {
-                        mesh.primitives.map((p,i) => {
-                            return (
-                                <PrimitiveCard key={i} idx={i} prim={p} gltf={gltf} />
-                            )
-                        })
-                    }
-                </div>
-            </div>
-        </div>
-    )
-}
-
-const NodePanel: React.FC<{node: glNode, gltf: glTF, pkg: IGLTFPackage}> = ({ node, gltf, pkg }) => {
-    const [extrasOpen, setExtrasOpen] = React.useState(false)
-
-    const [viewer, setViewer] = React.useState<ThreeViewer>(new ThreeViewer)
-    React.useEffect(() => {
-        if (node.mesh == null) return
-        const gltfURL = makeGltfURLFromNode(node, pkg)
-        if (viewer.isInitialized) {
-            viewer.glTFLoadLocal(gltfURL, pkg.rootPath || '', pkg.fileMap)
-        } else {
-            viewer.on('init', () => {
-                viewer.glTFLoadLocal(gltfURL, pkg.rootPath || '', pkg.fileMap)
-            })
-        }
-    },[node])
-
-    return (
-        <>
-            <Dialog open={extrasOpen} onClose={() => setExtrasOpen(false)}>
-                <DialogTitle>Extras</DialogTitle>
-                <DialogContent>
-                    <SyntaxHighlighter 
-                        language='javascript' 
-                        style={colorBrewer}
-                        customStyle={{ fontSize: '0.6em' }}
-                    >
-                        { JSON.stringify(node.extras, null, 3) }
-                    </SyntaxHighlighter>
-                </DialogContent>
-            </Dialog>
-            <div>Node Info</div>
-            <div className={ styles.meshViewerSection }>
-                <Viewer viewer={viewer} />
-            </div>
-            <Paper elevation={6} className={ styles.nodeCard }>
-                <div className={ styles.nodeInfoContainer }>
-                    <div className={ styles.nodeInfoBox }>
-                        <div className={ styles.nodeInfoTitle }>Name:</div>
-                        <div className={ styles.nodeInfoContent }>
-                            {node.name}
-                        </div>
-                    </div>
-                    <div className={ styles.nodeInfoBox }>
-                        <div className={ styles.nodeInfoTitle }>Mesh:</div>
-                        <div className={ styles.nodeInfoContent }>
-                            {node.mesh || 'none'}
-                        </div>
-                    </div>
-                    <div className={ styles.nodeInfoBox }>
-                        {
-                            formatMatrix(node.matrix)
-                        }
-                    </div>
-                    <div className={ styles.nodeInfoBox }>
-                        <div className={ styles.nodeInfoTitle }>Children:</div>
-                        <div className={ styles.nodeInfoContent }>
-                            {node.children ? JSON.stringify(node.children) : 'none'}
-                        </div>
-                    </div>
-                    <div className={ styles.nodeInfoBox }>
-                        <div className={ styles.nodeInfoTitle }>Extras:</div>
-                        <div className={ styles.nodeInfoContent }>
-                            {
-                                node.extras ? (
-                                    <span 
-                                        onClick={() => setExtrasOpen(true)} 
-                                        style={{ 
-                                            color: 'blue', 
-                                            textDecoration: 'underline',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        View
-                                    </span>
-                                ) : 'none'
-                            }
-                        </div>
-                    </div>
-                </div>
-            </Paper>
-        </>
-    )
-}
-
-const PrimitiveCard: React.FC<{prim: glPrimitive, gltf: glTF, idx: number}> = ({ prim, gltf, idx }) => {
-    const attributes = Object.keys(prim.attributes).map((a,i) => {
-        const attribIdx = prim.attributes[a]
-        const attrib = gltf.accessors[attribIdx]
-        return (
-            <tr>
-                <td>{ a }</td>
-                <td>{ attribIdx }</td>
-                <td>{ attrib.count }</td>
-                <td>{ attrib.type }</td>
-            </tr>
-        )
-    })
-    const indicesAccessor = gltf.accessors[prim.indices]
-    attributes.push((
-        <tr>
-            <td>INDICES</td>
-            <td>{ indicesAccessor.selfIndex }</td>
-            <td>{ indicesAccessor.count }</td>
-            <td>{ indicesAccessor.type }</td>
-        </tr>
-    ))
-
-    let material: glMaterial | undefined
-    if (prim.material) material = gltf.materials[prim.material]
-
-    return (
-        <Paper elevation={6} className={ styles.primitiveCard }>
-            <div className={ styles.primitiveSection }>
-                <div className={ styles.primitiveSubtitle }>Accessors</div>
-                <div className={ styles.primitiveSubContainer }>
-                <table className={ styles.attributeTable }>
-                    <thead>
-                            <tr>
-                                <th>Attribute</th>
-                                <th>Index</th>
-                                <th>Count</th>
-                                <th>Type</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            { attributes }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            {
-                material != null ? (
-                    <div className={ styles.primitiveSection }>
-                        <div className={ styles.primitiveSubtitle }>Material</div>
-                        <div className={ styles.primitiveSubContainer }>
-                            <div>{ material.name || `Unnamed Material #${material.selfIndex}` }</div>
-                        </div>
-                    </div>
-                ) : null
-            }
-        </Paper>
-    )
 }
 
 function formatMatrix(m?: number[]) {

@@ -15,10 +15,16 @@ interface IBrowserProps {
     gltfPackage: IGLTFPackage
     onNodeSelect: (node: glNode) => void
     onMeshSelect: (mesh: glMesh) => void
+    meshScrollToIndex?: number
 }
 
 const Browser: React.FC<IBrowserProps> = (props) => {
     const [tab, setTab] = React.useState(0)
+
+    React.useEffect(() => {
+        if (props.meshScrollToIndex == null) return
+        setTab(1)
+    },[props.meshScrollToIndex])
 
     const getTab = (index: number) => {
         switch(index) {
@@ -34,6 +40,7 @@ const Browser: React.FC<IBrowserProps> = (props) => {
                     <MeshTree
                         meshes={ props.gltfPackage.gltf.meshes }
                         onMeshSelect={ props.onMeshSelect }
+                        scrollToIndex={ props.meshScrollToIndex }
                     />
                 )
             default: return <div />

@@ -29,13 +29,14 @@ export default class Inspector extends React.Component<IInspectorProps,IInspecto
                         gltfPackage={this.props.gltfPackage} 
                         onNodeSelect={this.onItemSelect}
                         onMeshSelect={this.onItemSelect}
+                        meshScrollToIndex={this.state.meshScrollToIndex}
                     />
                 </div>
                 <div className={ styles.info }>
                     <InfoPanel 
                         gltfPackage={ this.props.gltfPackage } 
                         item={ this.state.selectedItem } 
-                        // onMeshScrollTo={this.onMeshScrollTo}
+                        onMeshScrollTo={this.onMeshScrollTo}
                     />
                 </div>
                 {/* <div className={ styles.buffer }></div>
