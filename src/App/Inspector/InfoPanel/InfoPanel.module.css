@@ -113,3 +113,25 @@
 .materialContainer {
     margin-left: 15px;
 } */
+
+/* Buffer Styles */
+.bufferViewBtn {
+    color: blue;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.bufferRowElement {
+
+}
+.bufferRow {
+
+}
+.bufferElement {
+    width: 100%;
+    border-left: 1px solid #aaa;
+    margin-bottom: 5px;
+    table-layout: fixed;
+}
+.bufferTable {
+    width: 400px;
+}

@@ -33,7 +33,10 @@ export default class Dropper extends React.Component<IDropperProps, IDropperStat
   }
 
   public render() {
-    if (this.state.isLoaded) return <Redirect to='/model' />
+    if (this.state.isLoaded) {
+      console.log('returning /model redirect')
+      return <Redirect to='/model' />
+    }
 
     return (
       <div className={ styles.dropzone } ref={this.dropRef}>

@@ -21,6 +21,24 @@ export enum ComponentType {
     FLOAT = 5126
 }
 
+export const GetComponentArrayType = (type?: ComponentType) => {
+    switch(type) {
+        case ComponentType.BYTE:
+            return Int8Array
+        case ComponentType.UNSIGNED_BYTE:
+            return Uint8Array
+        case ComponentType.SHORT:
+            return Int16Array
+        case ComponentType.UNSIGNED_SHORT:
+            return Uint16Array
+        case ComponentType.UNSIGNED_INT:
+            return Uint32Array
+        case ComponentType.FLOAT:
+            return Float32Array
+        default: return undefined
+    }
+}
+
 export enum AccessorType {
     SCALAR = "SCALAR",
     VEC2 = "VEC2",

@@ -5,6 +5,7 @@ import { IGLTFPackage } from '../../../types'
 import { glNode, glMesh, glPrimitive } from "../../../types/gltf";
 import NodeTree from './NodeTree/NodeTree';
 import MeshTree from './MeshTree/MeshTree';
+import { GLTFManager } from '../../../utils/GLTFManager/GLTFManager';
 
 enum Panels {
     nodes,
@@ -12,7 +13,7 @@ enum Panels {
 }
 
 interface IBrowserProps {
-    gltfPackage: IGLTFPackage
+    gltfManager: GLTFManager
     onNodeSelect: (node: glNode) => void
     onMeshSelect: (mesh: glMesh) => void
     meshScrollToIndex?: number
@@ -31,14 +32,14 @@ const Browser: React.FC<IBrowserProps> = (props) => {
             case 0: 
                 return (
                     <NodeTree 
-                        nodes={ props.gltfPackage.gltf.nodes } 
+                        nodes={ props.gltfManager.gltf!.nodes } 
                         onNodeSelect={ props.onNodeSelect }
                     />
                 )
             case 1: 
                 return (
                     <MeshTree
-                        meshes={ props.gltfPackage.gltf.meshes }
+                        meshes={ props.gltfManager.gltf!.meshes }
                         onMeshSelect={ props.onMeshSelect }
                         scrollToIndex={ props.meshScrollToIndex }
                     />

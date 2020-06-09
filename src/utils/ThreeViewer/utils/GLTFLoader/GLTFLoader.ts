@@ -39,10 +39,17 @@ export default class GLTFLoader extends THREE.Loader {
         onError: (error: any) => void
     ) => {
         let resourcePath: string
-
-        if (this.resourcePath !== '') resourcePath = this.resourcePath
-        else if (this.path !== '') resourcePath = this.path
-        else resourcePath = THREE.LoaderUtils.extractUrlBase(url)
+        
+        if (this.resourcePath !== '') {
+            resourcePath = this.resourcePath
+            console.log('LOADER RESOURCE PATH OPT 1', resourcePath)
+        } else if (this.path !== '') {
+            resourcePath = this.path
+            console.log('LOADER RESOURCE PATH OPT 2', resourcePath)
+        } else {
+            resourcePath = THREE.LoaderUtils.extractUrlBase(url)
+            console.log('LOADER RESOURCE PATH OPT 3', resourcePath, url)
+        }
 
         // Tells the LoadingManager to track an extra item, which resolves after
         // the model is fully loaded. This means the count of items loaded will

@@ -39,9 +39,10 @@ async function gltfLoader(url: string): Promise<GLTFThree> {
 
 async function gltfLoaderLocal(url: string, rootPath: string, assetMap: Map<string,File>): Promise<GLTFThree> {
     const baseURL = LoaderUtils.extractUrlBase(url)
+    console.log('BASE URL', baseURL)
     return new Promise((resolve, reject) => {
         const manager = new LoadingManager()
-        const blobURLs = []
+        const blobURLs: string[] = []
         manager.setURLModifier((url: string) => {
             // URIs in a glTF file may be escaped, or not. Assume that assetMap is
             // from an un-escaped source, and decode all URIs before lookups.
@@ -49,13 +50,17 @@ async function gltfLoaderLocal(url: string, rootPath: string, assetMap: Map<stri
             const normalizedURL = rootPath + decodeURI(url)
               .replace(baseURL, '')
               .replace(/^(\.?\/)/, '')
+
+            console.log('NORM URL', normalizedURL)
     
             if (assetMap.has(normalizedURL)) {
               const blob = assetMap.get(normalizedURL)
+              console.log('NORM URL MATCH', normalizedURL, blob)
               const blobURL = URL.createObjectURL(blob)
               blobURLs.push(blobURL)
               return blobURL
             }
+            console.log('BLOB URLS', blobURLs)
             return url
         })
 
@@ -66,6 +71,7 @@ async function gltfLoaderLocal(url: string, rootPath: string, assetMap: Map<stri
         dracoLoader.setDecoderPath('assets/draco/')
         loader.setDRACOLoader(dracoLoader)
 
+        console.log('LOADER URL', url)
         loader.load(url,
             gltf => resolve(gltf), 
             xhr => console.log((xhr.loaded / xhr.total * 100) + '% loaded'),

@@ -232,9 +232,16 @@ export default class GLTFParser {
         const options = this.options
 
         return new Promise((resolve,reject) => {
-            loader.load(resolveURL(bufferDef.uri, options.path), (resolve as any), undefined, () => {
-                reject( new Error( 'THREE.GLTFLoader: Failed to load buffer "' + bufferDef.uri + '".' ) );
-            })
+			const uri = bufferDef.uri
+			const path = options.path
+			const url = resolveURL(uri, path)
+			console.log('RETRIEVING BUFFER ASSET', uri, path, url)
+            loader.load(
+				url,  // url
+				(resolve as any), // on load
+				undefined, // on progress
+				() => reject(new Error('THREE.GLTFLoader: Failed to load buffer "' + bufferDef.uri + '".')) // on error
+			)
         })
     }
 

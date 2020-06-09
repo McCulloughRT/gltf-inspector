@@ -6,9 +6,10 @@ import { Redirect } from 'react-router-dom'
 import { glNode, glPrimitive, glMesh } from '../../types/gltf'
 import InfoPanel from './InfoPanel/InfoPanel'
 import Browser from './Browser/Browser'
+import { GLTFManager } from '../../utils/GLTFManager/GLTFManager'
 
 interface IInspectorProps {
-    gltfPackage?: IGLTFPackage
+    gltfManager?: GLTFManager
 }
 
 interface IInspectorState {
@@ -20,13 +21,19 @@ export default class Inspector extends React.Component<IInspectorProps,IInspecto
     public state: IInspectorState = {}
 
     public render() {
-        if (this.props.gltfPackage == null) return <Redirect to='/' />
+        if (
+            this.props.gltfManager == null ||
+            this.props.gltfManager.gltf == null
+        ) {
+            console.log('returning / redirect')
+            return <Redirect to='/' />
+        }
         
         return (
             <div className={ styles.container }>
                 <div className={ styles.nodeTree}>
                     <Browser 
-                        gltfPackage={this.props.gltfPackage} 
+                        gltfManager={this.props.gltfManager} 
                         onNodeSelect={this.onItemSelect}
                         onMeshSelect={this.onItemSelect}
                         meshScrollToIndex={this.state.meshScrollToIndex}
@@ -34,7 +41,7 @@ export default class Inspector extends React.Component<IInspectorProps,IInspecto
                 </div>
                 <div className={ styles.info }>
                     <InfoPanel 
-                        gltfPackage={ this.props.gltfPackage } 
+                        gltfManager={ this.props.gltfManager } 
                         item={ this.state.selectedItem } 
                         onMeshScrollTo={this.onMeshScrollTo}
                     />
