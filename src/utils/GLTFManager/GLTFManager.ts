@@ -1,5 +1,5 @@
 import { LoadingManager, LoaderUtils, FileLoader } from "three"
-import { glBuffer, glTF, glNode } from "../../types/gltf"
+import { glBuffer, glTF, glNode, glMaterial } from "../../types/gltf"
 import { resolveURL } from "../ThreeViewer/utils/GLTFLoader/functions"
 import { WEBGL_TYPE_SIZES, WEBGL_COMPONENT_TYPES } from "../ThreeViewer/utils/GLTFLoader/constants"
 
@@ -29,6 +29,49 @@ export class GLTFManager {
         this.gltfURL = URL.createObjectURL(this.gltfFile)
         this.initializeFileLoader(this.gltfURL)
         return this.gltf
+    }
+
+    public GetNodesFromMesh = (meshIndex?: number): glNode[] => {
+        return this.gltf?.nodes.filter(n => n.mesh === meshIndex) || []
+    }
+
+    public GetMaterialsForNode = (nodeIndex: number): glMaterial[] => {
+        const node = this.gltf?.nodes.find(n => n.selfIndex === nodeIndex)
+        const meshes = this.gltf?.meshes.find(m => m.selfIndex === node?.mesh)
+        const materialIndices = meshes?.primitives.map(p => p.material)
+        let materials: glMaterial[] = []
+        if (materialIndices != null) {
+            for (let i = 0; i < materialIndices.length; i++) {
+                const idx = materialIndices[i];
+                const mat = this.gltf?.materials.find(m => m.selfIndex === idx)
+                if (mat != null) materials.push(mat)
+            }
+        }
+        return materials
+    }
+
+    public GetNodesForMaterial = (materialIndex?: number): glNode[] => {
+        const meshes = this.gltf?.meshes.filter(m => {
+            let containsMaterial = false
+            m.primitives.forEach(p => {
+                if (p.material === materialIndex) {
+                    containsMaterial = true
+                }
+            })
+            return containsMaterial
+        }) || []
+
+        let nodes: {[key:number]: glNode} = {}
+        for (let i = 0; i < meshes.length; i++) {
+            const mesh = meshes[i];
+            const meshNodes = this.GetNodesFromMesh(mesh.selfIndex)
+            for (let j = 0; j < meshNodes.length; j++) {
+                const node = meshNodes[j];
+                if (node.selfIndex) nodes[node.selfIndex] = node
+            }
+        }
+
+        return Object.values(nodes)
     }
 
     public LoadAccessorData = async (accessorIndex: number): Promise<ArrayBuffer | undefined> => {

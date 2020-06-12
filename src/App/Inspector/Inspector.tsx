@@ -3,7 +3,7 @@ import styles from './Inspector.module.css'
 
 import { IGLTFPackage } from '../../types'
 import { Redirect } from 'react-router-dom'
-import { glNode, glPrimitive, glMesh } from '../../types/gltf'
+import { glNode, glPrimitive, glMesh, glMaterial } from '../../types/gltf'
 import InfoPanel from './InfoPanel/InfoPanel'
 import Browser from './Browser/Browser'
 import { GLTFManager } from '../../utils/GLTFManager/GLTFManager'
@@ -13,8 +13,10 @@ interface IInspectorProps {
 }
 
 interface IInspectorState {
-    selectedItem?: glNode | glMesh
+    selectedItem?: glNode | glMesh | glMaterial
     meshScrollToIndex?: number
+    nodeTreeIndexFilter?: number[]
+    meshTreeIndexFilter?: number[]
 }
 
 export default class Inspector extends React.Component<IInspectorProps,IInspectorState> {
@@ -35,8 +37,10 @@ export default class Inspector extends React.Component<IInspectorProps,IInspecto
                     <Browser 
                         gltfManager={this.props.gltfManager} 
                         onNodeSelect={this.onItemSelect}
+                        nodeTreeIndexFilter={this.state.nodeTreeIndexFilter}
                         onMeshSelect={this.onItemSelect}
                         meshScrollToIndex={this.state.meshScrollToIndex}
+                        onMaterialSelect={ this.onItemSelect }
                     />
                 </div>
                 <div className={ styles.info }>
@@ -44,6 +48,8 @@ export default class Inspector extends React.Component<IInspectorProps,IInspecto
                         gltfManager={ this.props.gltfManager } 
                         item={ this.state.selectedItem } 
                         onMeshScrollTo={this.onMeshScrollTo}
+                        setNodeTreeIndexFilter={ this.setNodeTreeIndexFilter }
+                        setMeshTreeIndexFilter={ this.setMeshTreeIndexFilter }
                     />
                 </div>
                 {/* <div className={ styles.buffer }></div>
@@ -52,11 +58,19 @@ export default class Inspector extends React.Component<IInspectorProps,IInspecto
         )
     }
 
+    private setNodeTreeIndexFilter = (indices?: number[]) => {
+        this.setState({ nodeTreeIndexFilter: indices })
+    }
+
+    private setMeshTreeIndexFilter = (indices?: number[]) => {
+        this.setState({ meshTreeIndexFilter: indices })
+    }
+
     private onMeshScrollTo = (index: number) => {
         this.setState({ meshScrollToIndex: index })
     }
 
-    private onItemSelect = (item: glNode | glMesh) => {
+    private onItemSelect = (item: glNode | glMesh | glMaterial) => {
         this.setState({ selectedItem: item })
     }
 }

@@ -1,0 +1,51 @@
+/* Primitive Styles */
+.primitiveCard {
+    margin-bottom: 10px;
+    padding: 10px;
+    font-size: 0.8em;
+    max-width: 500px;
+}
+.primitiveTitle {
+    font-size: 1.3em;
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.primitiveSection {
+    margin-bottom: 10px;
+}
+.primitiveSubtitle {
+    margin-bottom: 5px;
+    font-size: 1.2em;
+}
+.primitiveSubContainer {
+    margin-left: 15px;
+}
+.attributeTable {
+    width: 100%;
+}
+.attributeTable th {
+    text-align: left;
+}
+
+/* Buffer Styles */
+.bufferViewBtn {
+    color: blue;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.bufferRowElement {
+
+}
+.bufferRow {
+
+}
+.bufferElement {
+    width: 100%;
+    border-left: 1px solid #aaa;
+    margin-bottom: 5px;
+    table-layout: fixed;
+}
+.bufferTable {
+    width: 400px;
+}

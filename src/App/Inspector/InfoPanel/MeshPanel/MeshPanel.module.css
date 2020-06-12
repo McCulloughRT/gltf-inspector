@@ -1,0 +1,24 @@
+/* Mesh Styles */
+.panelTitle {
+    font-size: 1.5em;
+    font-weight: 400;
+    margin-bottom: 20px;
+}
+.meshInfoSection {
+    margin-bottom: 20px;
+}
+
+.infoKey {
+    display: inline-block;
+}
+.infoValue {
+    display: inline-block;
+    margin-left: 15px;
+    font-weight: 700;
+}
+
+.meshViewerSection {
+    /* width: 400px; */
+    height: 400px;
+    margin-bottom: 20px;
+}

@@ -2,20 +2,25 @@ import React from 'react'
 import styles from './Browser.module.css'
 import { Tabs, Tab } from '@material-ui/core'
 import { IGLTFPackage } from '../../../types'
-import { glNode, glMesh, glPrimitive } from "../../../types/gltf";
+import { glNode, glMesh, glPrimitive, glMaterial } from "../../../types/gltf";
 import NodeTree from './NodeTree/NodeTree';
 import MeshTree from './MeshTree/MeshTree';
 import { GLTFManager } from '../../../utils/GLTFManager/GLTFManager';
+import MaterialTree from './MaterialTree/MaterialTree';
 
 enum Panels {
     nodes,
-    meshes
+    meshes,
+    materials
 }
 
 interface IBrowserProps {
     gltfManager: GLTFManager
+    nodeTreeIndexFilter?: number[]
+    meshTreeIndexFilter?: number[]
     onNodeSelect: (node: glNode) => void
     onMeshSelect: (mesh: glMesh) => void
+    onMaterialSelect: (material: glMaterial) => void
     meshScrollToIndex?: number
 }
 
@@ -27,12 +32,18 @@ const Browser: React.FC<IBrowserProps> = (props) => {
         setTab(1)
     },[props.meshScrollToIndex])
 
+    React.useEffect(() => {
+        if (props.nodeTreeIndexFilter == null) return
+        setTab(0)
+    }, [props.nodeTreeIndexFilter])
+
     const getTab = (index: number) => {
         switch(index) {
             case 0: 
                 return (
                     <NodeTree 
-                        nodes={ props.gltfManager.gltf!.nodes } 
+                        nodes={ props.gltfManager.gltf!.nodes }
+                        customIndexFilter={ props.nodeTreeIndexFilter }
                         onNodeSelect={ props.onNodeSelect }
                     />
                 )
@@ -42,6 +53,13 @@ const Browser: React.FC<IBrowserProps> = (props) => {
                         meshes={ props.gltfManager.gltf!.meshes }
                         onMeshSelect={ props.onMeshSelect }
                         scrollToIndex={ props.meshScrollToIndex }
+                    />
+                )
+            case 2:
+                return (
+                    <MaterialTree 
+                        materials={ props.gltfManager.gltf!.materials }
+                        onMaterialSelect={ props.onMaterialSelect }
                     />
                 )
             default: return <div />
@@ -59,9 +77,6 @@ const Browser: React.FC<IBrowserProps> = (props) => {
             >
                 <Tab className={ styles.tabButton } label='Nodes' />
                 <Tab className={ styles.tabButton } label='Meshes' />
-                <Tab className={ styles.tabButton } label='Accessors' />
-                <Tab className={ styles.tabButton } label='Views' />
-                <Tab className={ styles.tabButton } label='Buffers' />
                 <Tab className={ styles.tabButton } label='Materials' />
             </Tabs>
             <div style={{ height: '100%'}}>

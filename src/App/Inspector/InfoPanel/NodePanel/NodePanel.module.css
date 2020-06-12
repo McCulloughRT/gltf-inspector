@@ -1,0 +1,40 @@
+.nodeViewerSection {
+    /* width: 400px; */
+    height: 400px;
+    margin-bottom: 20px;
+}
+
+/* Node Styles */
+.nodeCard {
+    margin-bottom: 10px;
+    padding: 10px;
+    /* font-size: 0.8em; */
+}
+.nodeInfoContainer {
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: max-content max-content max-content;
+    /* width: calc(100% - 1px);
+    height: calc(100% - 3px); */
+    max-height: 400px;
+    font-weight: 300;
+    font-size: 0.8em;
+    /* border-top: 1px solid #aaa;
+    border-left: 1px solid #aaa; */
+}
+.nodeInfoBox {
+    /* border-right: 1px solid #aaa;
+    border-bottom: 1px solid #aaa; */
+    padding: 20px;
+}
+.nodeInfoTitle {
+    font-weight: 700;
+    font-size: 1em;
+    margin-bottom: 10px;
+}
+.nodeInfoContent {
+
+}
+.nodeExtrasContent {
+    
+}
