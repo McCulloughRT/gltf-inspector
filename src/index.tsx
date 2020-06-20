@@ -4,12 +4,18 @@ import './index.css';
 import App from './App/App';
 import * as serviceWorker from './serviceWorker';
 
+import { Provider } from 'mobx-react'
+import appState, { AppState } from './stores/app.store'
+
 import 'react-virtualized/styles.css'
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
+  
+    <React.StrictMode>
+      <Provider appState={appState}>
+        <App />
+      </Provider>
+    </React.StrictMode>,
   document.getElementById('root')
 );
 

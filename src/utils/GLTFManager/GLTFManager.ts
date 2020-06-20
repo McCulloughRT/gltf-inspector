@@ -1,5 +1,5 @@
 import { LoadingManager, LoaderUtils, FileLoader } from "three"
-import { glBuffer, glTF, glNode, glMaterial } from "../../types/gltf"
+import { glBuffer, glTF, glNode, glMaterial, glMesh } from "../../types/gltf"
 import { resolveURL } from "../ThreeViewer/utils/GLTFLoader/functions"
 import { WEBGL_TYPE_SIZES, WEBGL_COMPONENT_TYPES } from "../ThreeViewer/utils/GLTFLoader/constants"
 
@@ -50,7 +50,7 @@ export class GLTFManager {
         return materials
     }
 
-    public GetNodesForMaterial = (materialIndex?: number): glNode[] => {
+    public GetMeshesForMaterial = (materialIndex?: number): glMesh[] => {
         const meshes = this.gltf?.meshes.filter(m => {
             let containsMaterial = false
             m.primitives.forEach(p => {
@@ -60,6 +60,11 @@ export class GLTFManager {
             })
             return containsMaterial
         }) || []
+        return meshes        
+    }
+
+    public GetNodesForMaterial = (materialIndex?: number): glNode[] => {
+        const meshes = this.GetMeshesForMaterial(materialIndex)
 
         let nodes: {[key:number]: glNode} = {}
         for (let i = 0; i < meshes.length; i++) {
@@ -255,6 +260,7 @@ function process(gltf: glTF) {
         material.assetType = 'material'
         material.selfIndex = i
         material.referenceCount = 0
+        material.referenceCountNodes = 0
     }
 
     const meshes = gltf.meshes
@@ -299,8 +305,17 @@ function process(gltf: glTF) {
         node.selfIndex = i
         
         if (node.mesh) {
-            node.size = meshes[node.mesh].size
-            meshes[node.mesh].referenceCount! ++
+            const mesh = meshes[node.mesh]
+            node.size = mesh.size
+            mesh.referenceCount! ++
+
+            let materialIndices: number[] = []
+            for (let i = 0; i < mesh.primitives.length; i++) {
+                const prim = mesh.primitives[i];
+                if (prim.material) materialIndices.push(prim.material)
+            }
+            Array.from(new Set(materialIndices))
+                .forEach(idx => materials[idx].referenceCountNodes!++)
         }
     }
     orderNodes(gltf.nodes)

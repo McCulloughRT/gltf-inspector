@@ -4,13 +4,16 @@ import { glMaterial } from '../../../../types/gltf'
 import { FormControl, InputLabel, Input, InputAdornment } from '@material-ui/core'
 import { Search } from '@material-ui/icons'
 import { Table, AutoSizer, Column } from 'react-virtualized'
+import { AppState } from '../../../../stores/app.store'
+import { observer, inject } from 'mobx-react'
 
 interface IMaterialTreeProps {
-    materials: glMaterial[]
-    onMaterialSelect: (material: glMaterial) => void
+    appState?: AppState
+    // materials: glMaterial[]
+    // onMaterialSelect: (material: glMaterial) => void
 }
 
-const MaterialTree: React.FC<IMaterialTreeProps> = ({ materials, onMaterialSelect }) => {
+const MaterialTree: React.FC<IMaterialTreeProps> = inject('appState')(observer(({ appState }) => {
     const [selectedIdx, setSelectedIdx] = React.useState<number | undefined>()
     const [searchTerm, setSearchTerm] = React.useState<string | undefined>()
 
@@ -19,9 +22,10 @@ const MaterialTree: React.FC<IMaterialTreeProps> = ({ materials, onMaterialSelec
     }
 
     const handleClick = ({event, index, rowData}: {event: React.MouseEvent, index: number, rowData: any}) => {
-        const selectedNode = filteredMats[index]
+        const selectedMat = filteredMats[index]
         setSelectedIdx(index)
-        onMaterialSelect(selectedNode)
+        appState?.materialInspector.onMaterialSelect(selectedMat)
+        // onMaterialSelect(selectedNode)
     }
 
     const matSearchFilter = (mats: glMaterial[], term?: string) => {
@@ -30,7 +34,7 @@ const MaterialTree: React.FC<IMaterialTreeProps> = ({ materials, onMaterialSelec
         } else return mats
     }
 
-    const filteredMats = matSearchFilter(materials, searchTerm)
+    const filteredMats = matSearchFilter(appState?.gltfManager?.gltf?.materials || [], searchTerm)
 
     return (
         <div style={{ height: '100%' }}>
@@ -78,6 +82,6 @@ const MaterialTree: React.FC<IMaterialTreeProps> = ({ materials, onMaterialSelec
             </AutoSizer>
         </div>
     )
-}
+}))
 
 export default MaterialTree

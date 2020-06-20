@@ -118,6 +118,7 @@ export interface glMaterial extends IGLTFExtention {
         roughnessFactor: number
     }
     assetType?: 'material'
+    referenceCountNodes?: number
 }
 
 export interface glBuffer extends IGLTFExtention {

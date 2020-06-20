@@ -6,43 +6,27 @@ import { GLTFManager } from '../../../utils/GLTFManager/GLTFManager';
 import NodePanel from './NodePanel/NodePanel';
 import MeshPanel from './MeshPanel/MeshPanel';
 import MaterialPanel from './MaterialPanel/MaterialPanel';
+import { AppState, InfoPanels } from '../../../stores/app.store';
+import { inject, observer } from 'mobx-react';
 
 interface IInfoPanelProps {
-    item?: glNode | glMesh | glPrimitive | glMaterial
-    gltfManager: GLTFManager
-    onMeshScrollTo: (index: number) => void
-    setNodeTreeIndexFilter: (indices: number[]) => void
-    setMeshTreeIndexFilter: (indices: number[]) => void
+    appState?: AppState
 }
 
-const InfoPanel: React.FC<IInfoPanelProps> = (props) => {
-    const panel = getPanel(
-        props.gltfManager, 
-        props.onMeshScrollTo,
-        props.setNodeTreeIndexFilter,
-        props.setMeshTreeIndexFilter,
-        props.item
-    )
-
+const InfoPanel: React.FC<IInfoPanelProps> = inject('appState')(observer(({ appState }) => {
     return (
         <div className={ styles.container }>
-            { panel }
+            { getPanel(appState?.infoPanel) }
         </div>
     )
-}
+}))
 
-function getPanel(
-    gltfManager: GLTFManager, 
-    onMeshScrollTo: (item: number) => void,
-    setNodeTreeIndexFilter: (indices: number[]) => void,
-    setMeshTreeIndexFilter: (indices: number[]) => void,
-    item?: glNode | glMesh | glPrimitive | glMaterial
-) {
-    if (item == null) return <div />
-    switch(item.assetType) {
-        case 'node': return <NodePanel setIndexFilter={setMeshTreeIndexFilter} onMeshScrollTo={ onMeshScrollTo } node={item} gltfManager={gltfManager} />
-        case 'mesh': return <MeshPanel setIndexFilter={setNodeTreeIndexFilter} onMeshScrollTo={ onMeshScrollTo } mesh={item} gltfManager={gltfManager} />
-        case 'material': return <MaterialPanel material={item} gltfManager={gltfManager} />
+function getPanel(panelState?: InfoPanels): JSX.Element {
+    switch(panelState) {
+        case InfoPanels.node: return <NodePanel />
+        case InfoPanels.mesh: return <MeshPanel />
+        // case InfoPanels.material: return <MaterialPanel />
+        case InfoPanels.default:
         default: return <div />
     }
 }

@@ -10,19 +10,27 @@ import { colorBrewer } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import Viewer from '../../../../utils/ThreeViewer/Viewer'
 
 import styles from './NodePanel.module.css'
+import { AppState } from '../../../../stores/app.store'
+import { observer, inject } from 'mobx-react'
 
 interface INodePanelProps {
-    node: glNode 
-    gltfManager: GLTFManager
-    onMeshScrollTo: (item: number) => void
-    setIndexFilter: (indices: number[]) => void
-}
-const NodePanel: React.FC<INodePanelProps> = ({ node, gltfManager, onMeshScrollTo }) => {
-    const [extrasOpen, setExtrasOpen] = React.useState(false)
+    appState?: AppState
 
+    // node: glNode 
+    // gltfManager: GLTFManager
+    // onMeshScrollTo: (item: number) => void
+    // setIndexFilter: (indices: number[]) => void
+}
+const NodePanel: React.FC<INodePanelProps> = inject('appState')(observer(({ appState }) => {
+    const [extrasOpen, setExtrasOpen] = React.useState(false)
     const [viewer, setViewer] = React.useState<ThreeViewer>(new ThreeViewer)
+
+    const node = appState?.nodeInspector.selectedNode
+    const gltfManager = appState?.gltfManager
+
     React.useEffect(() => {
-        if (node.mesh == null) return
+        if (node == null || node.mesh == null || gltfManager == null) return
+
         const gltfURL = makeGltfURLFromNode(node, gltfManager)
         if (viewer.isInitialized) {
             viewer.glTFLoadLocal(gltfURL, gltfManager.rootPath || '', gltfManager.assetMap)
@@ -35,9 +43,18 @@ const NodePanel: React.FC<INodePanelProps> = ({ node, gltfManager, onMeshScrollT
 
     const meshClick = (meshIdx?: number) => {
         if (meshIdx == null) return
-        onMeshScrollTo(meshIdx)
+        appState?.meshInspector.onMeshReferenceClick(meshIdx)
+        // onMeshScrollTo(meshIdx)
     }
 
+    const materialClick = (materialIdx?: number) => {
+        if (materialIdx == null) return
+        // onMaterialScrollTo(materialIdx)
+    }
+
+    console.log('rendering nodepanel')
+    if (appState?.nodeInspector.selectedNode == null) return null
+    console.log('rendering selected node')
     return (
         <>
             <Dialog open={extrasOpen} onClose={() => setExtrasOpen(false)}>
@@ -48,7 +65,7 @@ const NodePanel: React.FC<INodePanelProps> = ({ node, gltfManager, onMeshScrollT
                         style={colorBrewer}
                         customStyle={{ fontSize: '0.6em' }}
                     >
-                        { JSON.stringify(node.extras, null, 3) }
+                        { JSON.stringify(node?.extras, null, 3) }
                     </SyntaxHighlighter>
                 </DialogContent>
             </Dialog>
@@ -61,31 +78,31 @@ const NodePanel: React.FC<INodePanelProps> = ({ node, gltfManager, onMeshScrollT
                     <div className={ styles.nodeInfoBox }>
                         <div className={ styles.nodeInfoTitle }>Name:</div>
                         <div className={ styles.nodeInfoContent }>
-                            {node.name}
+                            {node?.name}
                         </div>
                     </div>
                     <div className={ styles.nodeInfoBox }>
                         <div className={ styles.nodeInfoTitle }>Mesh:</div>
-                        <div className={ styles.nodeInfoContent } onClick={() => meshClick(node.mesh)}>
-                            { <span style={{ cursor:'pointer', color:'blue', textDecoration:'underline' }}>{node.mesh}</span> || 'none' }
+                        <div className={ styles.nodeInfoContent } onClick={() => meshClick(node?.mesh)}>
+                            { <span style={{ cursor:'pointer', color:'blue', textDecoration:'underline' }}>{node?.mesh}</span> || 'none' }
                         </div>
                     </div>
                     <div className={ styles.nodeInfoBox }>
                         {
-                            formatMatrix(node.matrix)
+                            formatMatrix(node?.matrix)
                         }
                     </div>
                     <div className={ styles.nodeInfoBox }>
                         <div className={ styles.nodeInfoTitle }>Children:</div>
                         <div className={ styles.nodeInfoContent }>
-                            {node.children ? JSON.stringify(node.children) : 'none'}
+                            {node?.children ? JSON.stringify(node?.children) : 'none'}
                         </div>
                     </div>
                     <div className={ styles.nodeInfoBox }>
                         <div className={ styles.nodeInfoTitle }>Extras:</div>
                         <div className={ styles.nodeInfoContent }>
                             {
-                                node.extras ? (
+                                node?.extras ? (
                                     <span 
                                         onClick={() => setExtrasOpen(true)} 
                                         style={{ 
@@ -104,8 +121,8 @@ const NodePanel: React.FC<INodePanelProps> = ({ node, gltfManager, onMeshScrollT
                         <div className={ styles.nodeInfoTitle }>Materials:</div>
                         <div className={ styles.nodeInfoContent }>
                             { 
-                                gltfManager.GetMaterialsForNode(node.selfIndex!).map(m => (
-                                    <div>{ m.name || `Unnamed Material #${m.selfIndex}` }</div>
+                                gltfManager?.GetMaterialsForNode(node?.selfIndex!).map(m => (
+                                    <div onClick={() => materialClick(m.selfIndex)}>{ m.name || `Unnamed Material #${m.selfIndex}` }</div>
                                 ))
                             }
                         </div>
@@ -114,7 +131,7 @@ const NodePanel: React.FC<INodePanelProps> = ({ node, gltfManager, onMeshScrollT
             </Paper>
         </>
     )
-}
+}))
 
 export function formatMatrix(m?: number[]) {
     if (m == null) m = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]

@@ -7,17 +7,25 @@ import { glNode } from '../../../../types/gltf'
 import { AutoSizer, Table, Column } from 'react-virtualized'
 import { FormControl, Input, InputLabel, InputAdornment, IconButton } from '@material-ui/core'
 import { Search } from '@material-ui/icons'
+import { observer, inject } from 'mobx-react'
+import { AppState } from '../../../../stores/app.store'
 // import { SortDirection } from '@material-ui/core'
 
 interface INodeTreeProps {
-    nodes: glNode[]
-    customIndexFilter?: number[]
-    onNodeSelect: (node: glNode) => void
+    appState?: AppState
+
+    // nodes: glNode[]
+    // customIndexFilter?: number[]
+    // onNodeSelect: (node: glNode) => void
 }
 
-const NodeTree: React.FC<INodeTreeProps> = ({ nodes, customIndexFilter, onNodeSelect }) => {
+const NodeTree: React.FC<INodeTreeProps> = inject('appState')(observer(({ appState }) => {
     const [selectedIdx, setSelectedIdx] = React.useState<number | undefined>()
     const [searchTerm, setSearchTerm] = React.useState<string | undefined>()
+
+    // const node = appState?.nodeInspector.selectedNode
+    const nodes = appState?.gltfManager?.gltf?.nodes
+    const customIndexFilter = appState?.nodeInspector.customIndexFilterFilter
 
     React.useEffect(() => {
         if (customIndexFilter == null) return
@@ -30,12 +38,14 @@ const NodeTree: React.FC<INodeTreeProps> = ({ nodes, customIndexFilter, onNodeSe
     }
 
     const handleClick = ({event, index, rowData}: {event: React.MouseEvent, index: number, rowData: any}) => {
-        const selectedNode = filteredNodes[index]
+        // const selectedNode = filteredNodes[index]
         setSelectedIdx(index)
-        onNodeSelect(selectedNode)
+        appState?.nodeInspector.onNodeSelect(rowData.selfIndex)
+        // onNodeSelect(selectedNode)
     }
 
-    const nodeSearchFilter = (nodes: glNode[], term?: string, customIndexFilter?: number[]) => {
+    const nodeSearchFilter = (nodes?: glNode[], term?: string, customIndexFilter?: number[]) => {
+        if (nodes == null) return []
         if (term != null) {
             return nodes.filter(n => n.name?.includes(term))
         } else if (customIndexFilter != null) {
@@ -52,7 +62,7 @@ const NodeTree: React.FC<INodeTreeProps> = ({ nodes, customIndexFilter, onNodeSe
     const filteredNodes = nodeSearchFilter(nodes, searchTerm, customIndexFilter)
 
     return (
-        <div style={{ height: '100%' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <div>
                 <FormControl style={{ width: '100%', marginBottom: '10px' }}>
                     <InputLabel style={{ paddingLeft: '10px' }} htmlFor='node-search-box'>Search Node Names</InputLabel>
@@ -69,35 +79,37 @@ const NodeTree: React.FC<INodeTreeProps> = ({ nodes, customIndexFilter, onNodeSe
                     />
                 </FormControl>
             </div>
-            <AutoSizer>
-                {({height, width}) => (
-                    <Table
-                        width={ width }
-                        height={ height }
-                        headerHeight={ 25 }
-                        // headerClassName={ styles.nodeHeader }
-                        noRowsRenderer={() => <div className={styles.noRows}>No rows</div>}
-                        rowClassName={ ({index}) => index < 0 ? styles.nodeHeader : styles.nodeRow }
-                        rowStyle={ ({index}) => {
-                            const style: React.CSSProperties = {}
-                            if (filteredNodes[index]?.hierarchy != null) style['paddingLeft'] = `${filteredNodes[index].hierarchy! * 25}px`
-                            if (index === selectedIdx) style['backgroundColor'] = '#e1e1e9'
-                            return style
-                        }}
-                        rowHeight={ 25 }
-                        rowCount={ filteredNodes.length }
-                        rowGetter={ ({index}) => filteredNodes[index] }
-                        onRowClick={ handleClick }
-                    >
-                        <Column label='Idx' dataKey='selfIndex' width={width * .1} />
-                        <Column label='Name' dataKey='name' width={width * .75} />
-                        <Column label='Size' dataKey='size' width={width * .15} />
-                    </Table>
-                )}
-            </AutoSizer>
+            <div style={{ height: '100%' }}>
+                <AutoSizer>
+                    {({height, width}) => (
+                        <Table
+                            width={ width }
+                            height={ height }
+                            headerHeight={ 25 }
+                            // headerClassName={ styles.nodeHeader }
+                            noRowsRenderer={() => <div className={styles.noRows}>No rows</div>}
+                            rowClassName={ ({index}) => index < 0 ? styles.nodeHeader : styles.nodeRow }
+                            rowStyle={ ({index}) => {
+                                const style: React.CSSProperties = {}
+                                if (filteredNodes[index]?.hierarchy != null) style['paddingLeft'] = `${filteredNodes[index].hierarchy! * 25}px`
+                                if (index === selectedIdx) style['backgroundColor'] = '#e1e1e9'
+                                return style
+                            }}
+                            rowHeight={ 25 }
+                            rowCount={ filteredNodes.length }
+                            rowGetter={ ({index}) => filteredNodes[index] }
+                            onRowClick={ handleClick }
+                        >
+                            <Column label='Idx' dataKey='selfIndex' width={width * .1} />
+                            <Column label='Name' dataKey='name' width={width * .75} />
+                            <Column label='Size' dataKey='size' width={width * .15} />
+                        </Table>
+                    )}
+                </AutoSizer>
+            </div>
         </div>
     )
-}
+}))
 
 export default NodeTree
 

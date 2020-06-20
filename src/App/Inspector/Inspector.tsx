@@ -35,21 +35,22 @@ export default class Inspector extends React.Component<IInspectorProps,IInspecto
             <div className={ styles.container }>
                 <div className={ styles.nodeTree}>
                     <Browser 
-                        gltfManager={this.props.gltfManager} 
-                        onNodeSelect={this.onItemSelect}
-                        nodeTreeIndexFilter={this.state.nodeTreeIndexFilter}
-                        onMeshSelect={this.onItemSelect}
-                        meshScrollToIndex={this.state.meshScrollToIndex}
-                        onMaterialSelect={ this.onItemSelect }
+                        // gltfManager={this.props.gltfManager} 
+                        // onNodeSelect={this.onItemSelect}
+                        // nodeTreeIndexFilter={this.state.nodeTreeIndexFilter}
+                        // onMeshSelect={this.onItemSelect}
+                        // meshTreeIndexFilter={this.state.meshTreeIndexFilter}
+                        // meshScrollToIndex={this.state.meshScrollToIndex}
+                        // onMaterialSelect={ this.onItemSelect }
                     />
                 </div>
                 <div className={ styles.info }>
                     <InfoPanel 
-                        gltfManager={ this.props.gltfManager } 
-                        item={ this.state.selectedItem } 
-                        onMeshScrollTo={this.onMeshScrollTo}
-                        setNodeTreeIndexFilter={ this.setNodeTreeIndexFilter }
-                        setMeshTreeIndexFilter={ this.setMeshTreeIndexFilter }
+                        // gltfManager={ this.props.gltfManager } 
+                        // item={ this.state.selectedItem } 
+                        // onMeshScrollTo={this.onMeshScrollTo}
+                        // setNodeTreeIndexFilter={ this.setNodeTreeIndexFilter }
+                        // setMeshTreeIndexFilter={ this.setMeshTreeIndexFilter }
                     />
                 </div>
                 {/* <div className={ styles.buffer }></div>

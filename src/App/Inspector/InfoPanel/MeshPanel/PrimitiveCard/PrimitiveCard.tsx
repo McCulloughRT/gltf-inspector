@@ -3,24 +3,27 @@ import { glPrimitive, GetComponentArrayType, glMaterial, AccessorType } from '..
 import { GLTFManager } from '../../../../../utils/GLTFManager/GLTFManager'
 import { Dialog, DialogTitle, DialogContent, Paper } from '@material-ui/core'
 import styles from './PrimitiveCard.module.css'
+import { AppState } from '../../../../../stores/app.store'
+import { observer, inject } from 'mobx-react'
 
 
 interface IPrimitiveCardProps {
+    appState?: AppState
     prim: glPrimitive
     idx: number
-    gltfManager: GLTFManager
+    // gltfManager: GLTFManager
 }
-const PrimitiveCard: React.FC<IPrimitiveCardProps> = ({ prim, gltfManager, idx }) => {
+const PrimitiveCard: React.FC<IPrimitiveCardProps> = inject('appState')(observer(({ appState, prim, idx }) => {
     const [bufferOpen, setBufferOpen] = React.useState(false)
     const [bufferData, setBufferData] = React.useState<JSX.Element | undefined>()
 
     const getBufferData = async (accessorIdx?: number) => {
-        if (accessorIdx == null) return
+        if (accessorIdx == null || appState?.gltfManager == null) return
         setBufferOpen(true)
-        gltfManager.LoadAccessorData(accessorIdx)
+        appState.gltfManager.LoadAccessorData(accessorIdx)
         .then(data => {
             if (data == null) return
-            const acc = gltfManager.gltf?.accessors[accessorIdx]
+            const acc = appState?.gltfManager?.gltf?.accessors[accessorIdx]
             const typedBufferConstructor = GetComponentArrayType(acc?.componentType)
             if (typedBufferConstructor == null) return
 
@@ -31,7 +34,7 @@ const PrimitiveCard: React.FC<IPrimitiveCardProps> = ({ prim, gltfManager, idx }
 
     const attributes = Object.keys(prim.attributes).map((a,i) => {
         const attribIdx = prim.attributes[a]
-        const attrib = gltfManager.gltf?.accessors[attribIdx]
+        const attrib = appState?.gltfManager?.gltf?.accessors[attribIdx]
         return (
             <tr>
                 <td>{ a }</td>
@@ -42,7 +45,7 @@ const PrimitiveCard: React.FC<IPrimitiveCardProps> = ({ prim, gltfManager, idx }
             </tr>
         )
     })
-    const indicesAccessor = gltfManager.gltf?.accessors[prim.indices]
+    const indicesAccessor = appState?.gltfManager?.gltf?.accessors[prim.indices]
     attributes.push((
         <tr>
             <td>INDICES</td>
@@ -54,7 +57,7 @@ const PrimitiveCard: React.FC<IPrimitiveCardProps> = ({ prim, gltfManager, idx }
     ))
 
     let material: glMaterial | undefined
-    if (prim.material) material = gltfManager.gltf?.materials[prim.material]
+    if (prim.material) material = appState?.gltfManager?.gltf?.materials[prim.material]
 
     return (
         <>
@@ -97,7 +100,7 @@ const PrimitiveCard: React.FC<IPrimitiveCardProps> = ({ prim, gltfManager, idx }
             </Paper>
         </>
     )
-}
+}))
 
 function formatBuffer(
     buffer: Float32Array | Int8Array | Uint8Array | Int16Array | Uint16Array | Uint32Array,
