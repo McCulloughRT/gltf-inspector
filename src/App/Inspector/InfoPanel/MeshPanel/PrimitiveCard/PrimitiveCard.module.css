@@ -3,7 +3,7 @@
     margin-bottom: 10px;
     padding: 10px;
     font-size: 0.8em;
-    max-width: 500px;
+    /* max-width: 500px; */
 }
 .primitiveTitle {
     font-size: 1.3em;
@@ -42,9 +42,10 @@
 }
 .bufferElement {
     width: 100%;
-    border-left: 1px solid #aaa;
+    border-bottom: 1px solid #aaa;
     margin-bottom: 5px;
     table-layout: fixed;
+    font-size: 0.75em;
 }
 .bufferTable {
     width: 400px;

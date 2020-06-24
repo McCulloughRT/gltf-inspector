@@ -1,7 +1,8 @@
 .container {
     /* max-height: 400px; */
     /* max-width: 600px; */
-    height: 100%;
-    overflow: auto;
+    height: calc(100% - 40px);
+    /* overflow: auto; */
     padding: 20px;
+    overflow-y: auto;
 }

@@ -91,8 +91,13 @@ const PrimitiveCard: React.FC<IPrimitiveCardProps> = inject('appState')(observer
                     material != null ? (
                         <div className={ styles.primitiveSection }>
                             <div className={ styles.primitiveSubtitle }>Material</div>
-                            <div className={ styles.primitiveSubContainer }>
-                                <div>{ material.name || `Unnamed Material #${material.selfIndex}` }</div>
+                            <div 
+                                onClick={() => appState?.materialInspector.onMaterialReferenceClick(material?.selfIndex!) } 
+                                className={ styles.primitiveSubContainer }
+                            >
+                                <div style={{ color: 'blue', textDecoration: 'underline', cursor: 'pointer' }}>
+                                    { `${material.selfIndex}: ${material.name}` || `Unnamed Material #${material.selfIndex}` }
+                                </div>
                             </div>
                         </div>
                     ) : null

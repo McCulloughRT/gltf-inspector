@@ -4,35 +4,32 @@ import { glMaterial } from '../../../../types/gltf'
 import { GLTFManager } from '../../../../utils/GLTFManager/GLTFManager'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { colorBrewer } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { AppState } from '../../../../stores/app.store'
+import { inject, observer } from 'mobx-react'
+import { Paper } from '@material-ui/core'
 
 interface IMaterialPanelProps {
-    material: glMaterial
-    gltfManager: GLTFManager
-    setIndexFilterNode: (indices: number[]) => void
-    setIndexFilterMesh: (indices: number[]) => void
+    appState?: AppState
 }
 
-const MaterialPanel: React.FC<IMaterialPanelProps> = ({ material, gltfManager, setIndexFilterNode, setIndexFilterMesh }) => {
-    // const refs = gltfManager.GetNodesForMaterial(material.selfIndex)
+const MaterialPanel: React.FC<IMaterialPanelProps> = inject('appState')(observer(({ appState }) => {
+
+    const material = appState?.materialInspector.selectedItem
+    const gltfManager = appState?.gltfManager
 
     const goToNodeReferences = () => {
-        if (material.selfIndex == null) throw new Error('Material was not appropriately initialized with a selfIndex reference.')
-        const refs = gltfManager.GetNodesForMaterial(material.selfIndex)
-        const indices: number[] | undefined = refs?.map(r => r.selfIndex).filter(r => r != null) as number[]
-        if (indices != null) setIndexFilterNode(indices)
+        appState?.materialInspector.GoToNodeReferences(material)
     }
 
     const goToMeshReferences = () => {
-        const refs = gltfManager.GetMeshesForMaterial(material.selfIndex)
-        const indices: number[] | undefined = refs?.map(r => r.selfIndex).filter(r => r != null) as number[]
-        if (indices != null) setIndexFilterMesh(indices)
+        appState?.materialInspector.GoToMeshReferences(material)
     }
 
-    const displayMaterial = {...material}
-    delete displayMaterial.assetType
-    delete displayMaterial.selfIndex
-    delete displayMaterial.referenceCount
-    delete displayMaterial.referenceCountNodes
+    const displayMaterial: {[key: string]: any} = {...material}
+    delete displayMaterial['assetType']
+    delete displayMaterial['selfIndex']
+    delete displayMaterial['referenceCount']
+    delete displayMaterial['referenceCountNodes']
 
     return (
         <div>
@@ -41,17 +38,17 @@ const MaterialPanel: React.FC<IMaterialPanelProps> = ({ material, gltfManager, s
                 <div style={{ display: 'inline-block', marginRight: '20px' }}>
                     <div className={ styles.infoKey }>Mesh References:</div>
                     <div onClick={goToMeshReferences} style={
-                        material.referenceCountNodes && material.referenceCountNodes > 0 ? { color: 'blue', textDecoration: 'underline', cursor: 'pointer' } : {}
-                    } className={ styles.infoValue }>{material.referenceCount || 0}</div>
+                        material?.referenceCountNodes && material.referenceCountNodes > 0 ? { color: 'blue', textDecoration: 'underline', cursor: 'pointer' } : {}
+                    } className={ styles.infoValue }>{material?.referenceCount || 0}</div>
                 </div>
                 <div style={{ display: 'inline-block' }}>
                     <div className={ styles.infoKey }>Node References:</div>
                     <div onClick={goToNodeReferences} style={
-                        material.referenceCountNodes && material.referenceCountNodes > 0 ? { color: 'blue', textDecoration: 'underline', cursor: 'pointer' } : {}
-                    } className={ styles.infoValue }>{material.referenceCountNodes || 0}</div>                    
+                        material?.referenceCountNodes && material?.referenceCountNodes > 0 ? { color: 'blue', textDecoration: 'underline', cursor: 'pointer' } : {}
+                    } className={ styles.infoValue }>{material?.referenceCountNodes || 0}</div>                    
                 </div>
             </div>
-            <div className={ styles.materialInfoSection }>
+            <Paper elevation={6} className={ styles.materialInfoSection }>
                 <SyntaxHighlighter 
                     language='javascript' 
                     style={colorBrewer}
@@ -59,9 +56,9 @@ const MaterialPanel: React.FC<IMaterialPanelProps> = ({ material, gltfManager, s
                 >
                     { JSON.stringify(displayMaterial, null, 3) }
                 </SyntaxHighlighter>
-            </div>
+            </Paper>
         </div>
     )
-}
+}))
 
 export default MaterialPanel

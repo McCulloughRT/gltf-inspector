@@ -1,6 +1,7 @@
 import React from 'react'
 import ThreeViewer from './ThreeViewer'
 import { Object3D } from 'three'
+import ResizeObserver from 'resize-observer-polyfill'
 
 interface IViewerProps {
     viewer: ThreeViewer
@@ -8,6 +9,7 @@ interface IViewerProps {
 
 export default class Viewer extends React.Component<IViewerProps> {
     private containerRef: React.RefObject<HTMLDivElement> = React.createRef()
+    private observer?: ResizeObserver
 
     public async componentDidMount() {
         const container = this.containerRef.current!
@@ -44,6 +46,8 @@ export default class Viewer extends React.Component<IViewerProps> {
 
         // document.body.appendChild(div)
 
+        this.addResize()
+
         viewer.on('selection', (ev: { selection: Object3D[] }) => {
             // if (ev.selection && ev.selection.userData.UniqueId) {
             //     viewer.IsolateElements([ev.selection.userData.UniqueId])
@@ -53,12 +57,35 @@ export default class Viewer extends React.Component<IViewerProps> {
         })
     }
 
+    public componentWillUnmount() {
+        this.removeResize()
+    }
+
     render() {
         return (
             <div ref={this.containerRef} style={{ 
                 width: '100%', 
-                height: '100%'
+                height: '400px',
+                overflow: 'hidden'
             }} />
         )
+    }
+
+    private addResize = () => {
+        const node = this.containerRef.current
+        if (node) {
+            this.observer = new ResizeObserver((entries: any[]) => {
+                // console.log(entries[0].target.clientWidth)
+                this.props.viewer.onResize()
+            })
+            this.observer.observe(node)
+        }
+    }
+
+    private removeResize = () => {
+        const node = this.containerRef.current
+        if (node && this.observer) {
+            this.observer.unobserve(node)
+        }
     }
 }

@@ -29,20 +29,21 @@ const APP_STATE = new AppState()
 
 export class MeshInspectorState {
     @observable public selectedIndex?: number
-    @computed public get selectedMesh(): glMesh | undefined {
+    @computed public get selectedItem(): glMesh | undefined {
         if (this.selectedIndex == null) return undefined
         return APP_STATE.gltfManager?.gltf?.meshes[this.selectedIndex]
     }
 
-    @observable public meshScrollToIndex?: number
+    @observable public scrollToIndex?: number
     @observable public customIndexFilter?: number[]
 
     @action public setIndexFilter = (filter?: number[]) => {
         this.customIndexFilter = filter
+        APP_STATE.ChangeBrowserTab(1)
     }
 
     @action public onMeshReferenceClick = (meshIdx: number) => {
-        this.meshScrollToIndex = meshIdx + 5
+        this.scrollToIndex = meshIdx + 5
         this.selectedIndex = meshIdx
         // this.selectedMesh = APP_STATE.gltfManager?.gltf?.meshes[meshIdx]
         APP_STATE.ChangeBrowserTab(1)
@@ -65,13 +66,13 @@ export class MeshInspectorState {
 
 export class NodeInspectorState {
     @observable public selectedIndex?: number
-    @computed public get selectedNode(): glNode | undefined {
+    @computed public get selectedItem(): glNode | undefined {
         if (this.selectedIndex == null) return undefined
         return APP_STATE.gltfManager?.gltf?.nodes[this.selectedIndex]
     }
     // @observable public selectedNode?: glNode
-    @observable public nodeScrollToIndex?: number
-    @observable public customIndexFilterFilter?: number[]
+    @observable public scrollToIndex?: number
+    @observable public customIndexFilter?: number[]
 
     @action public onNodeSelect = (nodeIdx: number) => {
         console.log('selected node', nodeIdx)
@@ -80,19 +81,47 @@ export class NodeInspectorState {
     }
 
     @action public setIndexFilter = (filter?: number[]) => {
-        this.customIndexFilterFilter = filter
+        this.customIndexFilter = filter
+        APP_STATE.ChangeBrowserTab(0)
     }
 }
 
 export class MaterialInspectorState {
-    @observable public selectedMaterial?: glMaterial
-    @observable public matScrollToIndex?: number
-    @observable public customIndexFilterFilter?: number[]
+    @observable public selectedIndex?: number
+    @computed public get selectedItem(): glMaterial | undefined {
+        if (this.selectedIndex == null) return undefined
+        return APP_STATE.gltfManager?.gltf?.materials[this.selectedIndex]
+    }
 
-    @action public onMaterialSelect = (mat?: glMaterial) => {
-        console.log('selected material', mat)
-        this.selectedMaterial = mat
+    @observable public scrollToIndex?: number
+    @observable public customIndexFilter?: number[]
+
+    @action public onMaterialReferenceClick = (matIdx: number) => {
+        this.scrollToIndex = matIdx + 5
+        this.selectedIndex = matIdx
+
+        APP_STATE.ChangeBrowserTab(2)
+        APP_STATE.ChangeInfoPanel(InfoPanels.material)
+    }
+
+    @action public onMaterialSelect = (matIdx?: number) => {
+        console.log('selected material', matIdx)
+        this.selectedIndex = matIdx
         APP_STATE.infoPanel = InfoPanels.material
+    }
+
+    @action public GoToNodeReferences = (material?: glMaterial) => {
+        if (material?.selfIndex == null) throw new Error('Material was not appropriately initialized with a selfIndex reference.')
+        const refs = APP_STATE.gltfManager?.GetNodesForMaterial(material.selfIndex)
+        const indices: number[] | undefined = refs?.map(r => r.selfIndex).filter(r => r != null) as number[]
+        if (indices != null) APP_STATE.nodeInspector.setIndexFilter(indices)
+    }
+
+    @action public GoToMeshReferences = (material?: glMaterial) => {
+        if (material?.selfIndex == null) throw new Error('Material was not appropriately initialized with a selfIndex reference.')
+        const refs = APP_STATE.gltfManager?.GetMeshesForMaterial(material.selfIndex)
+        const indices: number[] | undefined = refs?.map(r => r.selfIndex).filter(r => r != null) as number[]
+        if (indices != null) APP_STATE.meshInspector.setIndexFilter(indices)   
     }
 }
 

@@ -1,77 +1,65 @@
 import React from 'react'
 import styles from './Inspector.module.css'
 
-import { IGLTFPackage } from '../../types'
 import { Redirect } from 'react-router-dom'
-import { glNode, glPrimitive, glMesh, glMaterial } from '../../types/gltf'
 import InfoPanel from './InfoPanel/InfoPanel'
 import Browser from './Browser/Browser'
-import { GLTFManager } from '../../utils/GLTFManager/GLTFManager'
+import { inject, observer } from 'mobx-react'
+import { AppState, InfoPanels } from '../../stores/app.store'
+import TwoColumnFlex from '../_components/TwoColumnFlex/TwoColumnFlex'
 
 interface IInspectorProps {
-    gltfManager?: GLTFManager
+    appState?: AppState
 }
 
-interface IInspectorState {
-    selectedItem?: glNode | glMesh | glMaterial
-    meshScrollToIndex?: number
-    nodeTreeIndexFilter?: number[]
-    meshTreeIndexFilter?: number[]
-}
+const Inspector: React.FC<IInspectorProps> = inject('appState')(observer(({ appState}) => {
+    if (
+        appState?.gltfManager == null ||
+        appState?.gltfManager.gltf == null
+    ) return <Redirect to='/' />
 
-export default class Inspector extends React.Component<IInspectorProps,IInspectorState> {
-    public state: IInspectorState = {}
-
-    public render() {
-        if (
-            this.props.gltfManager == null ||
-            this.props.gltfManager.gltf == null
-        ) {
-            console.log('returning / redirect')
-            return <Redirect to='/' />
-        }
-        
-        return (
-            <div className={ styles.container }>
+    return (
+        <TwoColumnFlex 
+            columnOne = {(
                 <div className={ styles.nodeTree}>
-                    <Browser 
-                        // gltfManager={this.props.gltfManager} 
-                        // onNodeSelect={this.onItemSelect}
-                        // nodeTreeIndexFilter={this.state.nodeTreeIndexFilter}
-                        // onMeshSelect={this.onItemSelect}
-                        // meshTreeIndexFilter={this.state.meshTreeIndexFilter}
-                        // meshScrollToIndex={this.state.meshScrollToIndex}
-                        // onMaterialSelect={ this.onItemSelect }
-                    />
+                    <div className={ styles.columnTitle }>
+                        <div>glTF Browser</div>
+                    </div>
+                    <Browser />
                 </div>
+            )}
+            columnTwo={(
                 <div className={ styles.info }>
-                    <InfoPanel 
-                        // gltfManager={ this.props.gltfManager } 
-                        // item={ this.state.selectedItem } 
-                        // onMeshScrollTo={this.onMeshScrollTo}
-                        // setNodeTreeIndexFilter={ this.setNodeTreeIndexFilter }
-                        // setMeshTreeIndexFilter={ this.setMeshTreeIndexFilter }
-                    />
+                    <div className={ styles.columnTitle }>
+                        <div>{ getInfoMessage(appState?.infoPanel) }</div>
+                    </div>
+                    <InfoPanel />
                 </div>
-                {/* <div className={ styles.buffer }></div>
-                <div className={ styles.viewer }></div> */}
-            </div>
-        )
-    }
+            )}
+            allowDrag={ true }
+            defaultLeftWidth={ window.innerWidth / 2 }
+        />
+        // <div className={ styles.container }>
+        //     <div className={ styles.nodeTree}>
+        //         <div style={{ height: '40px' }}>glTF Browser</div>
+        //         <Browser />
+        //     </div>
+        //     <div className={ styles.info }>
+        //         <div style={{ height: '40px' }}>{ getInfoMessage(appState?.infoPanel) }</div>
+        //         <InfoPanel />
+        //     </div>
+        // </div>
+    )
+}))
 
-    private setNodeTreeIndexFilter = (indices?: number[]) => {
-        this.setState({ nodeTreeIndexFilter: indices })
-    }
-
-    private setMeshTreeIndexFilter = (indices?: number[]) => {
-        this.setState({ meshTreeIndexFilter: indices })
-    }
-
-    private onMeshScrollTo = (index: number) => {
-        this.setState({ meshScrollToIndex: index })
-    }
-
-    private onItemSelect = (item: glNode | glMesh | glMaterial) => {
-        this.setState({ selectedItem: item })
+function getInfoMessage(panelType?: InfoPanels): string {
+    switch(panelType) {
+        case InfoPanels.node: return 'Node Information'
+        case InfoPanels.mesh: return 'Mesh Information'
+        case InfoPanels.material: return 'Material Information'
+        case InfoPanels.default: 
+        default: return 'glTF Information'
     }
 }
+
+export default Inspector

@@ -1,41 +1,20 @@
-import { BoxHelper, WebGLRenderer, Raycaster, Scene, Color, PerspectiveCamera, Vector3, PointLight, PointLightHelper, AmbientLight, Vector2, Intersection, Object3D, Sphere, MeshBasicMaterial, Mesh, SphereGeometry, Box3, DirectionalLight, Material, BufferGeometry, Geometry, Matrix4, Plane, PlaneHelper, LoaderUtils, LoadingManager } from 'three'
+import { 
+    WebGLRenderer, Raycaster, Scene, 
+    Color, PerspectiveCamera, Vector3, 
+    AmbientLight, Vector2, Intersection, 
+    Object3D, Mesh, Box3, DirectionalLight,
+    LoaderUtils, LoadingManager 
+} from 'three'
+
 import OrbitControls from './utils/OrbitControls'
-import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils'
-import {GLTF, GLTFLoader as gltfl} from 'three/examples/jsm/loaders/GLTFLoader'
-// import GLTFLoader from './utils/gltfLoader'
 import GLTFLoader from './utils/GLTFLoader/GLTFLoader'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader'
 import { Evented } from './utils/evented'
 import DragEvents from './utils/dragevents'
-import * as THREE from 'three'
-// import { SectionBox } from './utils/ResizableCube'
-import SelectionManager from './Managers/SelectionManager.simple'
+// import * as THREE from 'three'
 import { GLTFThree } from './utils/GLTFLoader/types'
 import Stats from 'stats.js'
-import { glMesh, glAccessor, glMaterial, glPrimitive } from '../../types/gltf'
-// import TransformManager from './Managers/TransformManager'
 
-async function gltfLoader(url: string): Promise<GLTFThree> {
-    return new Promise((resolve,reject) => {
-        const loader = new GLTFLoader() as gltfl
-        const dracoLoader = new DRACOLoader()
-        dracoLoader.setDecoderPath('assets/draco/')
-        loader.setCrossOrigin('anonymous')
-        loader.setDRACOLoader(dracoLoader)
-
-        loader.load(url, 
-            (gltf) => {
-                // console.log('gltf resolved')
-                resolve(gltf as any)
-            },
-            xhr => console.log((xhr.loaded / xhr.total * 100) + '% loaded'),
-            error => {
-                console.error('ERROR', error)
-                reject(error)
-            }
-        )
-    })
-}
 
 async function gltfLoaderLocal(url: string, rootPath: string, assetMap: Map<string,File>): Promise<GLTFThree> {
     const baseURL = LoaderUtils.extractUrlBase(url)
@@ -99,18 +78,7 @@ export default class ThreeViewer extends Evented {
     public renderer: WebGLRenderer = new WebGLRenderer({antialias: true})
     public raycaster: Raycaster = new Raycaster()
     public scene: Scene = new Scene()
-    
-    // public pickingScene: Scene = new Scene()
-    public raycastingContainer: Object3D = new Object3D()
     public visibleContainer: Object3D = new Object3D()
-    // public hideModeContainer: Object3D = new Object3D()
-
-    private hiddenUniqueIds: string[] = []
-    private isolatedUniqueIds: string[] = []
-
-    private materialToObject3DMap: IMaterialToObjectMap = { 'Unnamed': [] }
-    private elementToFragmentMap: { [key: string]: string[] } = {}
-    private elementToMaterialMap: { [key: string]: string[] } = {}
 
     public sectionBox? = undefined
 
@@ -135,16 +103,9 @@ export default class ThreeViewer extends Evented {
         bgColor1: '#ffffff',
         bgColor2: '#353535'
     }
-    
-    // private sphereInter: Mesh = new Mesh(new SphereGeometry(.1), new MeshBasicMaterial({ color: 0xffff00 }))
-
-    public selectionManager?: SelectionManager
-    // public sectionManager: SectionManager
-    // public transformManager: TransformManager
 
     public Init = (container: HTMLDivElement) => {
         this.container = container
-        this.selectionManager = new SelectionManager(this)
 
         // Event systems
         this.events = new DragEvents(this.container, {
@@ -156,8 +117,8 @@ export default class ThreeViewer extends Evented {
         })
 
         this.scene.background = new Color(0x444444)
-        this.camera = new PerspectiveCamera(75, this.container.clientWidth / this.container.clientHeight, 0.1, 100)
-        this.camera.up = new THREE.Vector3( 0, 0, 1 )
+        this.camera = new PerspectiveCamera(50, this.container.clientWidth / this.container.clientHeight, 0.1, 100)
+        this.camera.up = new Vector3( 0, 0, 1 )
         this.scene.add(this.camera)
 
         this.renderer.physicallyCorrectLights = true;
@@ -171,11 +132,8 @@ export default class ThreeViewer extends Evented {
         this.controls = new OrbitControls(this.camera, this.renderer.domElement)
         this.controls.screenSpacePanning = true
 
-        this.raycastingContainer.name = 'raycastingContainer'
         this.visibleContainer.name = 'visibleContainer'
-        // this.hideModeContainer.name = 'hideModeContainer'
         this.scene.add(this.visibleContainer)
-        this.scene.add(this.raycastingContainer)
 
         this.container.addEventListener('resize', this.onResize, false);
 
@@ -191,20 +149,11 @@ export default class ThreeViewer extends Evented {
         Object3D.DefaultUp.set(0,0,1)
     }
 
-    public LoadSingleMesh = async (mesh: glMesh, accessors: glAccessor[], material: glMaterial) => {
-        
-    }
-
-    public LoadSinglePrimitive = async (primitive: glPrimitive, accessors: glAccessor[], material: glMaterial) => {
-
-    }
-
     /**
      * Adapted from https://github.com/donmccurdy/three-gltf-viewer
      */
     public glTFLoadLocal = async (url: string, rootPath: string, assetMap: Map<string,File>) => {
         this.visibleContainer.children = []
-        this.raycastingContainer.children = []
 
         const gltf = await gltfLoaderLocal(url, rootPath, assetMap)
 
@@ -216,35 +165,11 @@ export default class ThreeViewer extends Evented {
         delete gltf.parser
 
         const sceneCount = this.countMeshes(this.scene, true);
-        const raycasterCount = this.countMeshes(this.raycastingContainer, true);
+        const visibleCount = this.countMeshes(this.visibleContainer, true);
         console.log(`====== MESH COUNTS ======`)
         console.log(`\tScene Count: ${sceneCount}`)
-        console.log(`\tRaycaster Count: ${raycasterCount}`)
+        console.log(`\tRaycaster Count: ${visibleCount}`)
         console.log(`====== MESH COUNTS ======`)
-        ;(window as any).THREE = THREE;
-    }
-
-    public glTFLoad = async (url: string) => {
-        // console.log('starting gltf load')
-        Object3D.DefaultUp.set(0,0,1)
-        const gltf = await gltfLoader(url)
-        // console.log('RESOLVE MUST HAVE ALREADY HAPPENED', gltf)
-        // console.log('GLTF:',gltf)
-        this.updateCameraToContent(gltf.scene)
-        this.addContent(gltf.scene)
-        this.updateLights();
-        delete gltf.scene
-        delete gltf.scenes
-        delete gltf.parser
-
-        const sceneCount = this.countMeshes(this.scene, true);
-        const raycasterCount = this.countMeshes(this.raycastingContainer, true);
-        console.log(`====== MESH COUNTS ======`)
-        console.log(`\tScene Count: ${sceneCount}`)
-        console.log(`\tRaycaster Count: ${raycasterCount}`)
-        console.log(`====== MESH COUNTS ======`)
-        this.fire('sceneLoaded')
-        ;(window as any).THREE = THREE;
     }
 
     public updateCameraToContent = (content: Object3D) => {
@@ -276,181 +201,11 @@ export default class ThreeViewer extends Evented {
     public addContent = (parsedScene: Scene) => {
         const root = parsedScene.children[0]
         console.log(`root scene count: ${this.countMeshes(root, true)}`)
-        console.log(`root scene direct children count: ${root.children.length}`)
-        // this.visibleContainer.add(root)
-        // this.scene.add(this.visibleContainer)
-        
+        console.log(`root scene direct children count: ${root.children.length}`)        
         console.log('ROOT', root)
 
-        // this.raycastingContainer.add(...rootObject.children)
-        this.raycastingContainer.add(parsedScene)
-        // this.raycastingContainer.visible = false
-
-        // this.processMeshes(parsedScene, false)
-        // this.visibleContainer.add(parsedScene)
-        // let iterations = 0
-        // for (let i = 0; i < root.children.length; i++) {
-        //     const child = root.children[i];
-        //     this.visibleContainer.add(new Object3D().copy(child))
-        //     // console.log(i, root.children[i])
-        //     iterations++
-        // }
-        // console.log(`Completed ${iterations} iterations`)
-        // this.processMeshes(root, false, true)
-        // this.scene.add(parsedRoot.children[0])
-        // this.scene.add(object);
+        this.visibleContainer.add(parsedScene)
     }
-
-    private processMeshes = (rootObject: Object3D, mergeMesh: boolean = true, allowRaycast: boolean = true) => {
-        console.log('processMeshes start')
-        // const object = new Object3D()
-        if (mergeMesh) {
-            this.materialToObject3DMap = this.createMaterialToObject3DMap(rootObject)
-            // console.log('materialToObject3DMap created', this.materialToObject3DMap)
-
-            if (allowRaycast) {
-                const { elementToFragmentMap, elementToMaterialMap } = this.createElementMaps(rootObject)
-                // console.log('Element Maps created', elementToFragmentMap, elementToMaterialMap)
-                this.elementToFragmentMap = elementToFragmentMap
-                this.elementToMaterialMap = elementToMaterialMap
-            }
-    
-            // console.log('adding to raycasting container')
-            if (allowRaycast) {
-                for (let i = 0; i < rootObject.children.length; i++) {
-                    const child = rootObject.children[i];
-                    this.raycastingContainer.add(child)
-                }
-                // this.raycastingContainer.add(...rootObject.children)
-                this.raycastingContainer.visible = false
-                // let stdMat = new MeshBasicMaterial()
-                // this.raycastingContainer.traverse((obj: Object3D) => {
-                //     if ((obj as Mesh).isMesh) {
-                //         let mesh = obj as Mesh
-                //         if (mesh.material != null) {
-                //             mesh.material = stdMat
-                //         }
-                //     }
-                // })
-            }
-    
-            // console.log('adding to visible container')
-            const mergedMeshes = this.mergeMeshes(this.materialToObject3DMap)
-            for (let i = 0; i < mergedMeshes.length; i++) {
-                const mesh = mergedMeshes[i];
-                this.visibleContainer.add(mesh)
-            }
-            // this.visibleContainer.add(...mergedMeshes)
-        } else {
-            for (let i = 0; i < rootObject.children.length; i++) {
-                const child = rootObject.children[i];
-                this.visibleContainer.add(child)
-            }
-            // this.visibleContainer.add(...rootObject.children)
-        }
-
-        // object.add(this.visibleContainer)
-        // object.add(this.visibleContainer, this.raycastingContainer, this.hideModeContainer)
-        console.log('processMeshes return')
-        // return object
-    }
-
-    public get SelectedUniqueIds(): string[] {
-        if (this.selectionManager == null) throw new Error('Selection Manager does not exist!')
-        const selection = this.selectionManager.selection
-        const ids = selection.map(e => e.userData.UniqueId)
-        return ids
-    }
-
-    // public get SectionEnabled(): boolean { return false }
-    // public get SectionVisible(): boolean { return false }
-    // public ToggleSection = (val: boolean) => {
-    //     console.log('Toggling section to ', val)
-    //     this.sectionBox?.setEnabled(val)
-    // }
-    // public ToggleSectionVisible = (val: boolean) => {
-    //     this.sectionBox?.setVisible(val)
-    // }
-
-    // public HideSelected = () => this.HideElements(this.SelectedUniqueIds)
-    // public UnhideAll = () => this.HideElements()
-    // public HideElements = (UniqueIds?: string[]): void => {
-    //     if (UniqueIds == null) {
-    //         this.hiddenUniqueIds = []
-    //         this.hideModeContainer.children = []
-    //         this.hideModeContainer.visible = false
-    //         this.visibleContainer.visible = true
-    //         return
-    //     }
-
-    //     this.hiddenUniqueIds.push(...UniqueIds)
-
-    //     const uuidsToPrune: string[] = []
-    //     const materialsToRecombine: string[] = []
-    //     for (let i = 0; i < this.hiddenUniqueIds.length; i++) {
-    //         const UniqueId = this.hiddenUniqueIds[i];
-    //         uuidsToPrune.push(...this.elementToFragmentMap[UniqueId])
-    //         materialsToRecombine.push(...this.elementToMaterialMap[UniqueId])
-    //     }
-
-    //     const newMaterialToObjectMap: IMaterialToObjectMap = Object.assign({}, this.materialToObject3DMap)
-
-    //     for (let i = 0; i < materialsToRecombine.length; i++) {
-    //         const material = materialsToRecombine[i];
-    //         const fragments = newMaterialToObjectMap[material]
-    //         if (fragments.length === 0) continue
-
-    //         const prunedFragments = fragments.filter(frag => !uuidsToPrune.includes(frag.uuid))
-    //         newMaterialToObjectMap[material] = prunedFragments
-    //     }
-
-    //     // TODO: only remerge meshes that have changed
-    //     const newMeshes = this.mergeMeshes(newMaterialToObjectMap)
-    //     this.hideModeContainer.children = []
-    //     this.hideModeContainer.add(...newMeshes)
-
-    //     this.hideModeContainer.visible = true
-    //     this.visibleContainer.visible = false
-    // }
-
-    // public IsolateSelected = () => this.IsolateElements(this.SelectedUniqueIds)
-    // public UnisolateAll = () => this.IsolateElements()
-    // public IsolateElements = (UniqueIds?: string[]): void => {
-    //     if (UniqueIds == null) {
-    //         this.isolatedUniqueIds = []
-    //         this.hideModeContainer.children = []
-    //         this.hideModeContainer.visible = false
-    //         this.visibleContainer.visible = true
-    //         return
-    //     }
-
-    //     this.isolatedUniqueIds.push(...UniqueIds)
-
-    //     const uuidsToKeep: string[] = []
-    //     const materialsToCombine: string[] = []
-    //     for (let i = 0; i < this.isolatedUniqueIds.length; i++) {
-    //         const UniqueId = this.isolatedUniqueIds[i];
-    //         uuidsToKeep.push(...this.elementToFragmentMap[UniqueId])
-    //         materialsToCombine.push(...this.elementToMaterialMap[UniqueId])
-    //     }
-
-    //     const newMaterialToObjectMap: IMaterialToObjectMap = {}
-    //     for (let i = 0; i < materialsToCombine.length; i++) {
-    //         const material = materialsToCombine[i];
-    //         const fragments = this.materialToObject3DMap[material]
-    //         if (fragments.length === 0) continue
-
-    //         const prunedFragments = fragments.filter(frag => uuidsToKeep.includes(frag.uuid))
-    //         newMaterialToObjectMap[material] = prunedFragments
-    //     }
-
-    //     const newMeshes = this.mergeMeshes(newMaterialToObjectMap)
-    //     this.hideModeContainer.children = []
-    //     this.hideModeContainer.add(...newMeshes)
-
-    //     this.hideModeContainer.visible = true
-    //     this.visibleContainer.visible = false
-    // }
 
     private countMeshes = (root: Object3D, countNonMeshObjects: boolean = false) => {
         let meshCount = 0
@@ -461,45 +216,6 @@ export default class ThreeViewer extends Evented {
         return meshCount
     }
 
-    private createElementMaps = (rootObject: Object3D) => {
-        const t0 = performance.now()
-
-        // key is UniqueId of Revit Element
-        // value is list of uuids for Object3D components of the Element
-        const elementToFragmentMap: { [key: string]: string[] } = {}
-
-        // key is UniqueId of Revit Element
-        // value is list of material names on components of the Element
-        const elementToMaterialMap: { [key: string]: string[] } = {}
-
-        this.traverseWithEscape(rootObject, (obj: Object3D) => {
-            // if the object is a Element
-            if (obj.userData.UniqueId) {
-                const key = obj.userData.UniqueId
-
-                const uuids = [obj.uuid]
-                const materials = []
-                if ((obj as Mesh).material) materials.push(((obj as Mesh).material as Material).name)
-
-                obj.traverse(child => {
-                    uuids.push(child.uuid)
-                    if ((child as Mesh).material) materials.push(((child as Mesh).material as Material).name)
-                })
-
-                elementToFragmentMap[key] = uuids
-                elementToMaterialMap[key] = materials
-
-                // Prevent re-traversing the children of this object
-                return false
-            }
-            // recurse on the children of this object
-            return true
-        })
-        
-        const t1 = performance.now()
-        console.log(`createElementMaps Performance:       ${t1 - t0} ms`)
-        return { elementToFragmentMap, elementToMaterialMap }
-    }
 
     public traverseWithEscape = (object: Object3D, callback: (obj: Object3D) => boolean) => {
         const result = callback(object)
@@ -508,66 +224,6 @@ export default class ThreeViewer extends Evented {
         for (let i = 0; i < object.children.length; i++) {
             this.traverseWithEscape(object.children[i], callback)
         }
-    }
-
-    private createMaterialToObject3DMap = (rootObject: Object3D) => {
-        const t0 = performance.now()
-
-        const materialToObject3DMap: IMaterialToObjectMap = { 'Unnamed': [] }
-        
-        rootObject.traverse(obj => {
-            if (obj.type === 'Mesh') {
-                // console.log('found mesh')
-                const mesh = obj as Mesh
-                if (mesh.material) {
-                    // console.log('found mesh material')
-                    const material = mesh.material as Material
-                    if (material.name) {
-                        // console.log('pushing named material')
-                        if (materialToObject3DMap[material.name] == null) materialToObject3DMap[material.name] = []
-                        materialToObject3DMap[material.name].push(mesh)
-                    } else {
-                        // console.log('pushing unnamed material')
-                        materialToObject3DMap['Unnamed'].push(mesh)
-                    }
-                }
-            }
-        })
-
-        const t1 = performance.now()
-        console.log(`createMaterialToObject3DMap Performance:       ${t1 - t0} ms`, materialToObject3DMap)
-        return materialToObject3DMap
-    }
-
-    private mergeMeshes = (map: IMaterialToObjectMap) => {
-        const t0 = performance.now()
-
-        const meshes = []
-        const materialNames = Object.keys(map)
-        console.log(`Merging on ${materialNames.length} materials.`)
-        for (let i = 0; i < materialNames.length; i++) {
-            const materialName = materialNames[i];
-            const fragments = map[materialName]
-            if (fragments.length === 0) continue
-
-            const material = (fragments[0].material as Material).clone()
-            // if (!material.name.includes('AM_Glass')) material.visible = false
-            const geometryCollection: BufferGeometry[] = []
-            for (let j = 0; j < fragments.length; j++) {
-                const frag = fragments[j];
-                const clonedGeom = frag.geometry.clone() as BufferGeometry
-                clonedGeom.applyMatrix4(frag.matrixWorld)
-                if (clonedGeom.type !== 'BufferGeometry') throw Error('non buffer geometry')
-                geometryCollection.push(clonedGeom);
-            }
-            const mergedGeometries = BufferGeometryUtils.mergeBufferGeometries(geometryCollection)
-            const mergedMesh = new Mesh(mergedGeometries, material)
-            meshes.push(mergedMesh)
-            geometryCollection.forEach(geom => geom.dispose()) // TODO: does this help?
-        }
-        const t1 = performance.now()
-        console.log(`mergeMeshes Performance:       ${t1 - t0} ms`)
-        return meshes
     }
 
     updateLights = () => {
@@ -594,14 +250,6 @@ export default class ThreeViewer extends Evented {
     
     addLights = () => {
         const state = this.state;
-
-        // if (this.options.preset === Preset.ASSET_GENERATOR) {
-        //     const hemiLight = new THREE.HemisphereLight();
-        //     hemiLight.name = 'hemi_light';
-        //     this.scene.add(hemiLight);
-        //     this.lights.push(hemiLight);
-        //     return;
-        // }
 
         const light1  = new AmbientLight(state.ambientColor, state.ambientIntensity);
         light1.name = 'ambient_light';
@@ -660,8 +308,6 @@ export default class ThreeViewer extends Evented {
                 if (e.object.userData.UniqueId) return e.object
                 else if (e.object.parent) return e.object.parent
                 else return undefined
-            }).filter(e => {
-                return e != null && !this.hiddenUniqueIds.includes(e.userData.UniqueId)
             })
 
             const closest = filteredIntersects[0]
@@ -674,7 +320,7 @@ export default class ThreeViewer extends Evented {
         // return undefined
         if (objects == null) 
             // objects = this.scene.children
-            objects = this.raycastingContainer.children
+            objects = this.visibleContainer.children
         if (options == null) 
             options = { recursive: true, filterSelectable: false }
 
@@ -688,7 +334,8 @@ export default class ThreeViewer extends Evented {
         return intersects
     }
 
-    private onResize = () => {
+    public onResize = () => {
+        console.log('onResize')
         if (this.container == null) throw new Error('Container does not exist!')
         const { clientWidth, clientHeight } = this.container
 
@@ -697,7 +344,7 @@ export default class ThreeViewer extends Evented {
         this.camera.updateProjectionMatrix();
         // notify the renderer of its size change
         this.renderer.setSize(clientWidth, clientHeight);
-        console.log('resize')
+        console.log('onResize end')
     }
 
     private beginStats = () => {
@@ -721,7 +368,6 @@ export default class ThreeViewer extends Evented {
         const calls = this.renderer.info.render.calls
         this.callPanel.update(calls, 5000)
         this.endStats()
-        // this.composer.render()
     }
 
     private normalizeClick = (event: MouseEvent): Vector2 => {
@@ -734,15 +380,6 @@ export default class ThreeViewer extends Evented {
         const payload = {
             point: this.normalizeClick(ev)
         }
-
-        // TODO: this is here for a future attempt at resetting the control target
-        // const intersects = this.intersectObjects(payload.point, undefined, {recursive:true})
-        // if (intersects && intersects.length > 0) {
-        //     const point = intersects[0].point
-        //     // this.controls.target = point
-        //     this.controls.update()
-        // }
-
         this.fire('dragstart', payload)
     }
     private onDrag = (ev: MouseEvent) => {

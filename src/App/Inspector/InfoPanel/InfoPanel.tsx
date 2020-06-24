@@ -25,7 +25,7 @@ function getPanel(panelState?: InfoPanels): JSX.Element {
     switch(panelState) {
         case InfoPanels.node: return <NodePanel />
         case InfoPanels.mesh: return <MeshPanel />
-        // case InfoPanels.material: return <MaterialPanel />
+        case InfoPanels.material: return <MaterialPanel />
         case InfoPanels.default:
         default: return <div />
     }

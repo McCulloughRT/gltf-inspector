@@ -1,52 +1,46 @@
 import React from 'react'
 import styles from './NodeTree.module.css'
 
-// import { TreeItem, TreeView } from '@material-ui/lab'
-// import { ExpandMore, ChevronRight } from '@material-ui/icons'
 import { glNode } from '../../../../types/gltf'
 import { AutoSizer, Table, Column } from 'react-virtualized'
 import { FormControl, Input, InputLabel, InputAdornment, IconButton } from '@material-ui/core'
 import { Search } from '@material-ui/icons'
 import { observer, inject } from 'mobx-react'
 import { AppState } from '../../../../stores/app.store'
-// import { SortDirection } from '@material-ui/core'
+import { useForceUpdate } from '../../../../hooks'
 
 interface INodeTreeProps {
     appState?: AppState
-
-    // nodes: glNode[]
-    // customIndexFilter?: number[]
-    // onNodeSelect: (node: glNode) => void
 }
 
 const NodeTree: React.FC<INodeTreeProps> = inject('appState')(observer(({ appState }) => {
-    const [selectedIdx, setSelectedIdx] = React.useState<number | undefined>()
     const [searchTerm, setSearchTerm] = React.useState<string | undefined>()
 
-    // const node = appState?.nodeInspector.selectedNode
-    const nodes = appState?.gltfManager?.gltf?.nodes
-    const customIndexFilter = appState?.nodeInspector.customIndexFilterFilter
+    const forceUpdate = useForceUpdate()
+
+    const handleClick = ({event, index, rowData}: {event: React.MouseEvent, index: number, rowData: any}) => {
+        appState?.nodeInspector.onNodeSelect(rowData.selfIndex)
+    }
 
     React.useEffect(() => {
-        if (customIndexFilter == null) return
-        setSearchTerm(undefined)
-    }, [customIndexFilter])
+        if (appState?.nodeInspector.customIndexFilter == null) return
+        setSearchTerm('::custom::')
+    }, [appState?.nodeInspector.customIndexFilter])
+
+    React.useEffect(() => {
+        console.log('forcing update')
+        forceUpdate()
+    }, [appState?.nodeInspector.selectedIndex])
 
     const handleSearchTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (customIndexFilter != null) 
+        if (appState?.nodeInspector.customIndexFilter != null)  {
+            appState?.nodeInspector.setIndexFilter(undefined)
+        }
         setSearchTerm(event.target.value)
     }
 
-    const handleClick = ({event, index, rowData}: {event: React.MouseEvent, index: number, rowData: any}) => {
-        // const selectedNode = filteredNodes[index]
-        setSelectedIdx(index)
-        appState?.nodeInspector.onNodeSelect(rowData.selfIndex)
-        // onNodeSelect(selectedNode)
-    }
-
-    const nodeSearchFilter = (nodes?: glNode[], term?: string, customIndexFilter?: number[]) => {
-        if (nodes == null) return []
-        if (term != null) {
+    const nodeSearchFilter = (nodes: glNode[], term?: string, customIndexFilter?: number[]) => {
+        if (term != null && term !== '::custom::' && term !== '') {
             return nodes.filter(n => n.name?.includes(term))
         } else if (customIndexFilter != null) {
             let output: glNode[] = []
@@ -59,7 +53,7 @@ const NodeTree: React.FC<INodeTreeProps> = inject('appState')(observer(({ appSta
         } else return nodes
     }
 
-    const filteredNodes = nodeSearchFilter(nodes, searchTerm, customIndexFilter)
+    const filteredNodes = nodeSearchFilter(appState?.gltfManager?.gltf?.nodes || [], searchTerm, appState?.nodeInspector.customIndexFilter)
 
     return (
         <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -69,6 +63,7 @@ const NodeTree: React.FC<INodeTreeProps> = inject('appState')(observer(({ appSta
                     <Input
                         id='node-search-box'
                         type='text'
+                        value={searchTerm}
                         onChange={handleSearchTextChange}
                         style={{ paddingLeft: '10px' }}
                         endAdornment={
@@ -86,15 +81,14 @@ const NodeTree: React.FC<INodeTreeProps> = inject('appState')(observer(({ appSta
                             width={ width }
                             height={ height }
                             headerHeight={ 25 }
-                            // headerClassName={ styles.nodeHeader }
                             noRowsRenderer={() => <div className={styles.noRows}>No rows</div>}
                             rowClassName={ ({index}) => index < 0 ? styles.nodeHeader : styles.nodeRow }
                             rowStyle={ ({index}) => {
                                 const style: React.CSSProperties = {}
-                                if (filteredNodes[index]?.hierarchy != null) style['paddingLeft'] = `${filteredNodes[index].hierarchy! * 25}px`
-                                if (index === selectedIdx) style['backgroundColor'] = '#e1e1e9'
+                                if (index === appState?.nodeInspector.selectedIndex) style['backgroundColor'] = '#e1e1e9'
                                 return style
                             }}
+                            scrollToIndex={ appState?.nodeInspector.scrollToIndex }
                             rowHeight={ 25 }
                             rowCount={ filteredNodes.length }
                             rowGetter={ ({index}) => filteredNodes[index] }

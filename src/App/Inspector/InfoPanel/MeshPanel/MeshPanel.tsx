@@ -8,20 +8,18 @@ import styles from './MeshPanel.module.css'
 import PrimitiveCard from './PrimitiveCard/PrimitiveCard'
 import { AppState } from '../../../../stores/app.store'
 import { inject, observer } from 'mobx-react'
+import SyntaxHighlighter from 'react-syntax-highlighter'
+import { colorBrewer } from "react-syntax-highlighter/dist/esm/styles/hljs";
+import { Paper } from '@material-ui/core'
 
 interface IMeshPanelProps {
     appState?: AppState
-    
-    // mesh: glMesh
-    // gltfManager: GLTFManager
-    // onMeshScrollTo: (item: number) => void
-    // setIndexFilter: (indices: number[]) => void
 }
 
 const MeshPanel: React.FC<IMeshPanelProps> = inject('appState')(observer(({ appState }) => {
     const [viewer, setViewer] = React.useState<ThreeViewer>(new ThreeViewer())
 
-    const mesh = appState?.meshInspector.selectedMesh
+    const mesh = appState?.meshInspector.selectedItem
     const gltfManager = appState?.gltfManager
 
     React.useEffect(() => {
@@ -38,40 +36,59 @@ const MeshPanel: React.FC<IMeshPanelProps> = inject('appState')(observer(({ appS
 
     const goToReferences = () => {
         appState?.meshInspector.GoToNodeReferences(mesh)
-        // if (mesh?.selfIndex == null) throw new Error('Mesh was not appropriately initialized with a selfIndex reference.')
-        // const refs = gltfManager?.GetNodesFromMesh(mesh.selfIndex)
-        // const indices: number[] | undefined = refs?.map(r => r.selfIndex).filter(r => r != null) as number[]
-        // if (indices != null) setIndexFilter(indices)
     }
+
+    const displayMesh: {[key:string]: any} = {...mesh}
+    delete displayMesh['assetType']
+    delete displayMesh['selfIndex']
+    delete displayMesh['referenceCount']
+    delete displayMesh['referenceCountNodes']
+    delete displayMesh['size']
+    delete displayMesh['hierarchy']
 
     return (
         <div>
-            <div className={ styles.panelTitle }>Mesh Info</div>
+            {/* <div className={ styles.panelTitle }>Mesh Info</div> */}
             <div className={ styles.meshInfoSection }>
+                <div>
+                    <div className={ styles.infoKey }>Name:</div>
+                    <div className={ styles.infoValue }>{ `${mesh?.selfIndex}: ${mesh?.name || 'Unnamed Mesh'}` }</div>
+                </div>
                 <div>
                     <div className={ styles.infoKey }>Total Size:</div>
                     <div className={ styles.infoValue }>{ mesh?.size } bytes</div>
                 </div>
                 <div>
-                    <div className={ styles.infoKey }>References:</div>
+                    <div className={ styles.infoKey }>Node References:</div>
                     <div onClick={goToReferences} style={
                         mesh?.referenceCount && mesh.referenceCount > 0 ? { color: 'blue', textDecoration: 'underline', cursor: 'pointer' } : {}
                     } className={ styles.infoValue }>{mesh?.referenceCount}</div>
                 </div>
             </div>
-            <div className={ styles.meshViewerSection }>
-                <Viewer viewer={viewer} />
-            </div>
+            <Viewer viewer={viewer} />
             <div>
                 <div>Primitives</div>
-                <div style={{ padding: '10px' }}>
-                    {
-                        mesh?.primitives.map((p,i) => {
-                            return (
-                                <PrimitiveCard key={i} idx={i} prim={p} />
-                            )
-                        })
-                    }
+                <div style={{ display: 'flex', flexDirection: 'row' }}>
+                    <div style={{ width: '50%'}}>
+                        <Paper elevation={6}>
+                            <SyntaxHighlighter 
+                                language='javascript' 
+                                style={colorBrewer}
+                                customStyle={{ fontSize: '0.9em' }}
+                            >
+                                { JSON.stringify(displayMesh, null, 3) }
+                            </SyntaxHighlighter>
+                        </Paper>
+                    </div>
+                    <div style={{ width: '50%', padding: '10px' }}>
+                        {
+                            mesh?.primitives.map((p,i) => {
+                                return (
+                                    <PrimitiveCard key={i} idx={i} prim={p} />
+                                )
+                            })
+                        }
+                    </div>
                 </div>
             </div>
         </div>

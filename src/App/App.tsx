@@ -39,7 +39,7 @@ const App: React.FC<IAppProps> = inject('appState')(observer(({ appState }) => {
         <Router>
             <Switch>
                 <Route path='/model'>
-                    <Inspector gltfManager={appState?.gltfManager} />
+                    <Inspector />
                 </Route>
                 <Route path='/'>
                     <Dropper onFileLoad={ onFileLoad } />

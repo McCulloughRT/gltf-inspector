@@ -10,27 +10,20 @@ import { useForceUpdate } from '../../../../hooks'
 
 interface IMeshTreeProps {
     appState?: AppState
-
-    // meshes: glMesh[]
-    // customIndexFilter?: number[]
-    // scrollToIndex?: number
-    // onMeshSelect: (mesh: glMesh) => void
 }
 
 const MeshTree: React.FC<IMeshTreeProps> = inject('appState')(observer(({ appState }) => {
-    // const [selectedIdx, setSelectedIdx] = React.useState<number | undefined>()
     const [searchTerm, setSearchTerm] = React.useState<string | undefined>()
 
     const forceUpdate = useForceUpdate()
 
     const handleClick = ({event, index, rowData}: {event: React.MouseEvent, index: number, rowData: any}) => {
-        // setSelectedIdx(index)
         appState?.meshInspector.onMeshSelect(rowData.selfIndex)
     }
 
     React.useEffect(() => {
         if (appState?.meshInspector.customIndexFilter == null) return
-        setSearchTerm(undefined)
+        setSearchTerm('::custom::')
     }, [appState?.meshInspector.customIndexFilter])
 
     React.useEffect(() => {
@@ -38,20 +31,15 @@ const MeshTree: React.FC<IMeshTreeProps> = inject('appState')(observer(({ appSta
         forceUpdate()
     }, [appState?.meshInspector.selectedIndex])
 
-    // React.useEffect(() => {
-    //     if (scrollToIndex != null) {
-    //         setSelectedIdx(scrollToIndex)
-    //         onMeshSelect(meshes[scrollToIndex])
-    //     }
-    // }, [scrollToIndex])
-
     const handleSearchTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (appState?.meshInspector.customIndexFilter != null) 
+        if (appState?.meshInspector.customIndexFilter != null) {
+            appState?.meshInspector.setIndexFilter(undefined)
+        }
         setSearchTerm(event.target.value)
     }
 
     const meshSearchFilter = (meshes: glMesh[], term?: string, customIndexFilter?: number[]) => {
-        if (term != null) {
+        if (term != null && term !== '::custom::' && term !== '') {
             return meshes.filter(n => n.name?.includes(term))
         } else if (customIndexFilter != null) {
             let output: glMesh[] = []
@@ -61,7 +49,9 @@ const MeshTree: React.FC<IMeshTreeProps> = inject('appState')(observer(({ appSta
                 if (node != null) output.push(node)
             }
             return output
-        } else return meshes
+        } else {
+            return meshes
+        }
     }
 
     const filteredMeshes = meshSearchFilter(appState?.gltfManager?.gltf?.meshes || [], searchTerm, appState?.meshInspector.customIndexFilter)
@@ -99,7 +89,7 @@ const MeshTree: React.FC<IMeshTreeProps> = inject('appState')(observer(({ appSta
                                 if (index === appState?.meshInspector.selectedIndex) style['backgroundColor'] = '#e1e1e9'
                                 return style
                             }}
-                            scrollToIndex={ appState?.meshInspector.meshScrollToIndex }
+                            scrollToIndex={ appState?.meshInspector.scrollToIndex }
                             rowHeight={ 25 }
                             rowCount={ filteredMeshes.length }
                             rowGetter={ ({index}) => filteredMeshes[index] }

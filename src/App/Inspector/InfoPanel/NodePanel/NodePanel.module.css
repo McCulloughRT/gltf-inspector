@@ -22,6 +22,9 @@
     /* border-top: 1px solid #aaa;
     border-left: 1px solid #aaa; */
 }
+.nodeInfoSection {
+    margin-bottom: 20px;
+}
 .nodeInfoBox {
     /* border-right: 1px solid #aaa;
     border-bottom: 1px solid #aaa; */
@@ -37,4 +40,13 @@
 }
 .nodeExtrasContent {
     
+}
+
+.infoKey {
+    display: inline-block;
+}
+.infoValue {
+    display: inline-block;
+    margin-left: 15px;
+    font-weight: 700;
 }

@@ -9,9 +9,26 @@
     overflow: hidden;
 }
 
-.nodeTree { grid-area: nodeTree; }
+.nodeTree { 
+    /* grid-area: nodeTree;  */
+    height: calc(100vh - 40px);
+}
 
-.info { grid-area: info; }
+.info { 
+    /* grid-area: info;  */
+    height: calc(100vh - 40px);
+}
+
+.columnTitle {
+    height: 40px;
+    text-align: center;
+    font-size: 1.4em;
+    background-color: #888;
+    color: #f9f9f9;
+}
+.columnTitle div {
+    padding-top: 5px;
+}
 
 .buffer { grid-area: buffer; }
 
