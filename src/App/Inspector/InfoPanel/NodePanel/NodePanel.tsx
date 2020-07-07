@@ -1,5 +1,5 @@
 import React from 'react'
-import { makeGltfURLFromNode, rndZero } from '../utils'
+import { makeGltfURLFromNode_Lazy, rndZero } from '../utils'
 import ThreeViewer from '../../../../utils/ThreeViewer/ThreeViewer'
 import { GLTFManager } from '../../../../utils/GLTFManager/GLTFManager'
 import { glNode } from '../../../../types/gltf'
@@ -28,18 +28,17 @@ const NodePanel: React.FC<INodePanelProps> = inject('appState')(observer(({ appS
     const node = appState?.nodeInspector.selectedItem
     const gltfManager = appState?.gltfManager
 
-    React.useEffect(() => {
-        if (node == null || node.mesh == null || gltfManager == null) return
-
-        const gltfURL = makeGltfURLFromNode(node, gltfManager)
+    if (node != null && gltfManager != null) {
+        console.log('node updating', node)
+        const gltfURL = makeGltfURLFromNode_Lazy(node, gltfManager)
         if (viewer.isInitialized) {
             viewer.glTFLoadLocal(gltfURL, gltfManager.rootPath || '', gltfManager.assetMap)
         } else {
             viewer.on('init', () => {
                 viewer.glTFLoadLocal(gltfURL, gltfManager.rootPath || '', gltfManager.assetMap)
             })
-        }
-    },[node])
+        }   
+    }
 
     const meshClick = (meshIdx?: number) => {
         if (meshIdx == null) return

@@ -615,7 +615,7 @@ export default class GLTFParser {
 		// 	materialParams.side = THREE.DoubleSide;
         // }
         
-        const alphaMode = materialDef.alphaMode || ALPHA_MODES.OPAQUE;
+        const alphaMode = materialDef.alphaMode || ALPHA_MODES.BLEND;
 
 		if ( alphaMode === ALPHA_MODES.BLEND ) {
 			materialParams.transparent = true;

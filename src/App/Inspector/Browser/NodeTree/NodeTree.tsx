@@ -86,6 +86,7 @@ const NodeTree: React.FC<INodeTreeProps> = inject('appState')(observer(({ appSta
                             rowStyle={ ({index}) => {
                                 const style: React.CSSProperties = {}
                                 if (index === appState?.nodeInspector.selectedIndex) style['backgroundColor'] = '#e1e1e9'
+                                if (filteredNodes[index]?.hierarchy != null) style['paddingLeft'] = `${filteredNodes[index]!.hierarchy! * 10}px`
                                 return style
                             }}
                             scrollToIndex={ appState?.nodeInspector.scrollToIndex }

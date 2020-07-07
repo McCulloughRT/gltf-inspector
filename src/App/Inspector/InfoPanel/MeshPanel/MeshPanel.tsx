@@ -22,8 +22,7 @@ const MeshPanel: React.FC<IMeshPanelProps> = inject('appState')(observer(({ appS
     const mesh = appState?.meshInspector.selectedItem
     const gltfManager = appState?.gltfManager
 
-    React.useEffect(() => {
-        if (mesh == null || gltfManager == null) return
+    if (mesh != null && gltfManager != null) {
         const gltfURL = makeGltfURLFromMesh(mesh, gltfManager) as string
         if (viewer.isInitialized) {
             viewer.glTFLoadLocal(gltfURL, gltfManager.rootPath || '', gltfManager.assetMap)
@@ -32,7 +31,7 @@ const MeshPanel: React.FC<IMeshPanelProps> = inject('appState')(observer(({ appS
                 viewer.glTFLoadLocal(gltfURL, gltfManager.rootPath || '', gltfManager.assetMap)
             })
         }
-    }, [mesh])
+    }
 
     const goToReferences = () => {
         appState?.meshInspector.GoToNodeReferences(mesh)

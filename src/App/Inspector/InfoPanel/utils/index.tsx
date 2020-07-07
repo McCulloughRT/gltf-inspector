@@ -2,6 +2,50 @@ import React from 'react'
 import { glNode, glTF, glMesh, glAccessor, glBufferView, glMaterial, glPrimitive, AccessorType } from "../../../../types/gltf";
 import { GLTFManager } from "../../../../utils/GLTFManager/GLTFManager";
 
+export function makeGltfURLFromNode_Lazy(originalNode: glNode, mgr: GLTFManager): string {
+    if (mgr.gltf == null) throw new Error('GLTF file has not been parsed!')
+
+    // const nodeIndexes = collectNodesRecursive(originalNode, mgr.gltf.nodes)
+    // const nodes: glNode[] = []
+    // nodes[originalNode.selfIndex!] = originalNode
+    // for (let i = 0; i < nodeIndexes.length; i++) {
+    //     const idx = nodeIndexes[i];
+    //     nodes[idx] = mgr.gltf.nodes[idx]
+    // }
+    
+    const gltf: glTF = {
+        asset: { version: [2] },
+        scenes: [{ nodes: [originalNode.selfIndex!] }],
+        nodes: mgr.gltf.nodes,
+        meshes: mgr.gltf.meshes,
+        buffers: mgr.gltf.buffers,
+        bufferViews: mgr.gltf.bufferViews,
+        accessors: mgr.gltf.accessors,
+        materials: mgr.gltf.materials
+    }
+    console.log('Derived GLTF', gltf)
+
+    const blob = new Blob([JSON.stringify(gltf)], {type : 'application/json'});
+    const gltfURL = URL.createObjectURL(blob)
+    return gltfURL
+}
+
+// function collectNodesRecursive(node: glNode, all_nodes: glNode[]) {
+//     if (node.children == null || node.children.length === 0) return []
+
+//     const indices: number[] = []
+
+//     for (let i = 0; i < node.children.length; i++) {
+//         const childIdx = node.children[i];
+//         indices.push(childIdx)
+
+//         const childNode = all_nodes[childIdx]
+//         const childIndexTree =  collectNodesRecursive(childNode, all_nodes)
+//         indices.push(...childIndexTree)
+//     }
+
+//     return indices
+// }
 
 // TODO: both of these can be moved to the gltf manager class
 export function makeGltfURLFromNode(originalNode: glNode, mgr: GLTFManager): string {
