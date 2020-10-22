@@ -1,44 +1,26 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# glTF Inspector
+This tools is intended to aid in debugging complex glTF files, making them more human readable. Drag and drop your glTF and it's associated assets to start exploring it.
 
-## Available Scripts
+## Node Browser
+Displays all the items in the gltf `nodes` array, with their indices, names, and the total byte size their geometry occupies (note: if geometry instancing is used this byte size will total > 100% of the file size). Indentation indicates node parent/child relationships.
 
-In the project directory, you can run:
+Clicking on a node in the list will load it into the Node Information Panel.
 
-### `npm start`
+### Node Information
+The node information panel will display an isolated 3d representation of the node at the top. To the bottom left you will find the raw JSON contents of the node, and to the right you will find a prettified panel displaying node properties and giving links to assets referenced by the node.
 
-Runs the app in the development mode.<br />
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Meshes Browser
+Displays all items in the gltf `meshes` array, with their indices, names, the number of times they are referenced by nodes, and the byte size of their geometry.
 
-The page will reload if you make edits.<br />
-You will also see any lint errors in the console.
+Clicking on a mesh will load it into the Mesh Information Panel.
 
-### `npm test`
+### Mesh Information
+The top of the mesh information panel will display the name and size of the mesh, and a count of nodes which reference this mesh. Clicking on the node reference count will return you to the Node Browser filtered to only show the nodes which reference this mesh. An insolated 3d representation of the mesh is displayed below. To the bottom left you will find the raw JSON contents ofthe mesh, and to the right you will find a prettified panel displaying mesh properties, and giving links to assets referenced by the mesh. For all binary data referenced, clicking the "View" link will display the numerical information (such as vertices or indices) in a prettified format.
 
-Launches the test runner in the interactive watch mode.<br />
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Materials Browser
+Displays all the items in the gltf `materials` array, with their indices, names, and the number of times they are referenced by meshes.
 
-### `npm run build`
+Clicking on a material will load it into the Material Information Panel.
 
-Builds the app for production to the `build` folder.<br />
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br />
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Material Information
+The material information panel will display both mesh references and node references to this material, clicking on their counts will return to their respective Browser tab filtered to only include referencing items. Additionally, the JSON contents of the material object are shown.
