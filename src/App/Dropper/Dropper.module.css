@@ -17,6 +17,8 @@
 
 .uploadBtn {
     margin-top: 2em;
+    border: 1px solid black;
+    border-radius: 3px;
 }
 
 .uploadBtn input {
@@ -30,7 +32,7 @@
 
 .uploadBtn label {
     color: #353535;
-    border: 0;
+    /* border: 0; */
     border-radius: 3px;
     transition: ease 0.2s background;
     font-size: 1rem;
@@ -39,7 +41,7 @@
     white-space: nowrap;
     cursor: pointer;
     display: inline-block;
-    overflow: hidden;
+    /* overflow: hidden; */
     padding: 0.625rem 1.25rem;
 }
 
@@ -48,8 +50,8 @@
 }
 
 .uploadBtn svg {
-    width: 1em;
-    height: 1em;
+    /* width: 1em;
+    height: 1em; */
     vertical-align: middle;
     fill: currentColor;
     margin-top: -0.25em;
