@@ -1,7 +1,7 @@
 # glTF Inspector
 This tool is intended to aid in debugging complex glTF files, making them more human readable. 
 
-The production tool is located [here](http://gltf.xyz.s3-website-us-west-2.amazonaws.com) and will soon be coming to: http://gltf.xyz
+The production tool is available at: http://gltf.xyz
 
 Drag and drop your glTF and it's associated assets to start exploring it. All data is kept local to your computer and nothing is ever sent back to a server.
 
