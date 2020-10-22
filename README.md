@@ -1,5 +1,7 @@
 # glTF Inspector
-This tool is intended to aid in debugging complex glTF files, making them more human readable. Drag and drop your glTF and it's associated assets to start exploring it.
+This tool is intended to aid in debugging complex glTF files, making them more human readable. 
+The production tool is located at http://gltf.xyz 
+Drag and drop your glTF and it's associated assets to start exploring it.
 
 ## Node Browser
 Displays all the items in the gltf `nodes` array, with their indices, names, and the total byte size their geometry occupies (note: if geometry instancing is used this byte size will total > 100% of the file size). Indentation indicates node parent/child relationships.
